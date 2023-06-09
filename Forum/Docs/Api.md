@@ -1,12 +1,12 @@
-## Auth
+# Auth
 
-### Register
+## Register
 
 ```js
 POST {{host}}/auth/register
 ```
 
-### Register Request
+## Register Request
 
 ```json
 {
@@ -18,7 +18,7 @@ POST {{host}}/auth/register
 }
 ```
 
-### Register Response
+## Register Response
 
 ```json
 {
@@ -31,7 +31,7 @@ POST {{host}}/auth/register
 }
 ```
 
-### Login
+## Login
 
 ```js
 POST {{host}}/auth/login

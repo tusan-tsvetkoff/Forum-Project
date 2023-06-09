@@ -37,7 +37,7 @@ POST {{host}}/auth/register
 POST {{host}}/auth/login
 ```
 
-### Login Request
+## Login Request
 
 ```json
 {

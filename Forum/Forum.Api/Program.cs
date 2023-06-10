@@ -1,9 +1,9 @@
-using Forum.Application.Services.Authentication;
+using Forum.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 {
-builder.Services.AddControllers();
-builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+    builder.Services.AddApplication();
+    builder.Services.AddControllers();
 }
 
 var app = builder.Build();

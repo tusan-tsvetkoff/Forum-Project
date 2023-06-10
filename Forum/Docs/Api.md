@@ -1,4 +1,4 @@
-# Auth
+# Authentication
 
 ## Register
 
@@ -22,7 +22,7 @@ POST {{host}}/auth/register
 
 ```json
 {
-"id": "d8dj3djd38-3d3d-k93d93kd939d-93d939dkd39kd93"
+"id": "d8dj3djd38-3d3d-k93d93kd939d-93d939dkd39kd93",
 "firstName": "James",
 "lastName": "McAvoy",
 "username": "jmaccas",
@@ -50,7 +50,7 @@ POST {{host}}/auth/login
 
 ```json
 {
-"id": "d8dj3djd38-3d3d-k93d93kd939d-93d939dkd39kd93"
+"id": "d8dj3djd38-3d3d-k93d93kd939d-93d939dkd39kd93",
 "firstName": "James",
 "lastName": "McAvoy",
 "username": "jmaccas",
@@ -58,3 +58,88 @@ POST {{host}}/auth/login
 "token": "eefe...z9fkdk988djf"
 }
 ```
+
+
+# Posting
+
+## Creating a Post
+
+```js
+POST {{host}}/api/posts
+```
+
+## Create a Post Request
+
+```json
+{
+"Title": "A title",
+"Content": "This is the content of the post.",
+"Tags": ["discussion", "etc."]
+}
+```
+
+## Create a Post Response
+
+```json
+{
+"Id": "kfk2fk2f239rmkl-13193mxzmdaskd-bmasfmaski31",
+"Title": "A title",
+"Content": "This is the content of the post.",
+"Tags": ["discussion", "etc."],
+"CreatedAt": "2023-06-10T12:34:56Z"
+}
+```
+
+## Retrieving a Post
+
+```js
+GET {{host}}/api/posts/{id}
+```
+
+## Get a Post Request
+
+```json
+{
+"Id": "kfk2fk2f239rmkl-13193mxzmdaskd-bmasfmaski31"
+}
+```
+
+## Get a Post Response
+
+```json
+{
+"Id": "kfk2fk2f239rmkl-13193mxzmdaskd-bmasfmaski31",
+"Title": "A title",
+"Content": "This is the content of the post.",
+"Tags": ["discussion", "etc."],
+"CreatedAt": "2023-06-10T12:34:56Z",
+"author":{
+    "id": "d8dj3djd38-3d3d-k93d93kd939d-93d939dkd39kd93",
+    "firstName": "James",
+    "lastName": "McAvoy",
+    "userName": "jmaccas"
+},
+"Comments": ["hello", "great post"],
+"Upvotes": 10,
+"Downvotes": 3
+}
+```
+
+## Sorting by Upvotes
+
+```js
+GET {{host}}/api/posts/top-likes?limit={Upvote.Count}&sort=desc
+```
+
+## Sorting by Comments
+
+```js
+GET {{host}}/api/posts/top-likes?limit={Comments.Count}&sort=desc
+```
+
+
+
+
+
+
+

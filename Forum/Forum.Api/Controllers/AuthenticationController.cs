@@ -1,8 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
-using Forum.Application.Services.Authentication;
-using Forum.Contracts.Authentication;
 using ErrorOr;
+using Forum.Application.Authentication.Commands.Register;
+using Forum.Application.Authentication.Common;
+using Forum.Application.Authentication.Queries.Login;
+using Forum.Contracts.Authentication;
 using Forum.Data.Common.Errors;
+using MapsterMapper;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Forum.Api.Controllers;
 
@@ -10,37 +14,33 @@ namespace Forum.Api.Controllers;
 [Route("auth")]
 public class AuthenticationController : ApiController
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly ISender _mediator;
+    private readonly IMapper _mapper;
 
-    public AuthenticationController(IAuthenticationService authenticationService)
+    public AuthenticationController(ISender mediator, IMapper mapper)
     {
-        _authenticationService = authenticationService;
+        _mediator = mediator;
+        _mapper = mapper;
     }
 
     [HttpPost("register")]
-    public IActionResult Register(RegisterRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        ErrorOr<AuthenticationResult> authResult = _authenticationService.Register(
-            request.FirstName,
-            request.LastName,
-            request.Username,
-            request.Email,
-            request.Password);
+        var command = _mapper.Map<RegisterCommand>(request);
+
+        var authResult = await _mediator.Send(command);
 
         return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+            authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
             errors => Problem(errors)
             );
     }
 
-
-
     [HttpPost("login")]
-    public IActionResult Login(LoginRequest request)
+    public async Task<IActionResult> Login(LoginRequest request)
     {
-        ErrorOr<AuthenticationResult> authResult = _authenticationService.Login(
-            request.Email,
-            request.Password);
+        var query = _mapper.Map<LoginQuery>(request);
+        var authResult = await _mediator.Send(query);
 
         if (authResult.IsError && authResult.FirstError == Errors.Authentication.InvalidCredentials)
         {
@@ -50,20 +50,8 @@ public class AuthenticationController : ApiController
         }
 
         return authResult.Match(
-            authResult => Ok(MapAuthResponse(authResult)),
+            authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
             errors => Problem(errors)
             );
-    }
-
-    private static AuthenticationResponse MapAuthResponse(AuthenticationResult authResult)
-    {
-        return new AuthenticationResponse(
-            authResult.User.Id,
-            authResult.User.FirstName,
-            authResult.User.LastName,
-            authResult.User.Username,
-            authResult.User.Email,
-            authResult.Token
-        );
     }
 }

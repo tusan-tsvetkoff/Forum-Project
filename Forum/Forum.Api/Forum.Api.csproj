@@ -14,7 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Forum.Contracts\Forum.Contracts.csproj" />
     <ProjectReference Include="..\Forum.Application\Forum.Application.csproj" />
-    <ProjectReference Include="C:\Users\User\github\ForumProject\Forum\Forum.Application\Forum.Application.csproj" />
+    <ProjectReference Include="..\Forum.Infrastructure\Forum.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
 ﻿using ErrorOr;
-using Forum.Api.Common.HttpContext;
+using Forum.Api.Common.HttpContexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

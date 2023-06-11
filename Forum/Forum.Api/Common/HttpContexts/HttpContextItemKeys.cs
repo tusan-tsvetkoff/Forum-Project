@@ -1,4 +1,4 @@
-﻿namespace Forum.Api.Common.HttpContext;
+﻿namespace Forum.Api.Common.HttpContexts;
 
 public static class HttpContextItemKeys
 {

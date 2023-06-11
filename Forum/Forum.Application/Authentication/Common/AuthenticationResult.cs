@@ -1,6 +1,6 @@
 using Forum.Models.Entities;
 
-namespace Forum.Application.Services.Authentication;
+namespace Forum.Application.Authentication.Common;
 
 public record AuthenticationResult(
     User User,

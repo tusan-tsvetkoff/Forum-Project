@@ -9,11 +9,11 @@ namespace Forum.Data.Entities
 {
     public class Post
     {
-        public Guid Id { get; }
-        public string Title { get; }
-        public string Content { get; }
+        public Guid Id { get; } = Guid.NewGuid();
+        public string Title { get; } = null!;
+        public string Content { get; } = null!;
         public Guid UserId { get; }
-        public User User { get; }
+        public User User { get; } = null!;
         //  public List<Comment> Comments { get; }
         public DateTime CreatedDate { get; }
         public DateTime LastEditedDate { get; }

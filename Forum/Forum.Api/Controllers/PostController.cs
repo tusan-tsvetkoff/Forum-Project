@@ -14,6 +14,11 @@ namespace Forum.Api.Controllers
             this._postService = _postService;
         }
 
+        [HttpGet("")]
+        public IActionResult GetAll() 
+        {
+            return Ok(_postService.GetPosts());
+        }
 
     }
 }

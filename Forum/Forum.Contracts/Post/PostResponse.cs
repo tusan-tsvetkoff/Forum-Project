@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 
 namespace Forum.Contracts.Post
 {
-    public record PostResponse
-    {
-        s
-    }
+    public record PostResponse(
+         Guid Id,
+         string Title,
+         string Content,
+         Guid UserId,
+         List<object> Comments,
+         DateTime CreatedDate,
+         DateTime LastEditedDate);
+
 }

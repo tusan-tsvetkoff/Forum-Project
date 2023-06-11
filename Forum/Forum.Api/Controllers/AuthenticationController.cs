@@ -49,7 +49,7 @@ namespace Forum.Api.Controllers;
                     authResult.Username,
                     authResult.Email,
                     authResult.Token
-                );   
+                );  
             return Ok(response);
         }
     }

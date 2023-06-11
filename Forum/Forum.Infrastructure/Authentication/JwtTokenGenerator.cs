@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.DependencyInjection;
 using Forum.Application.Common.Interfaces.Services;
 using Microsoft.Extensions.Options;
+using Forum.Models.Entities;
 
 namespace Forum.Infrastructure.Authentication
 {
@@ -24,7 +25,7 @@ namespace Forum.Infrastructure.Authentication
             _jwtSettings = jwtOptions.Value;
         }
 
-        public string GenerateToken(Guid userId, string firstName, string lastName)
+        public string GenerateToken(User user)
         {
             var signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(
@@ -33,11 +34,11 @@ namespace Forum.Infrastructure.Authentication
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-                new Claim(JwtRegisteredClaimNames.GivenName, userId.ToString()),
-                new Claim(JwtRegisteredClaimNames.FamilyName, userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
+                new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, userId.ToString())
+                new Claim(JwtRegisteredClaimNames.UniqueName, Guid.NewGuid().ToString())
             };
 
             var securityToken = new JwtSecurityToken(

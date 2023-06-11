@@ -1,10 +1,8 @@
+using Forum.Models.Entities;
+
 namespace Forum.Application.Services.Authentication;
 
 public record AuthenticationResult(
-    Guid Id,
-    string FirstName,
-    string LastName,
-    string Username,
-    string Email,
+    User User,
     string Token
 );

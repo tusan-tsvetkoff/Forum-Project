@@ -1,5 +1,7 @@
+using ErrorOr;
 using Forum.Application.Common.Interfaces.Authentication;
 using Forum.Application.Common.Interfaces.Persistence;
+using Forum.Data.Common.Errors;
 using Forum.Models.Entities;
 
 namespace Forum.Application.Services.Authentication;
@@ -15,12 +17,12 @@ public class AuthenticationService : IAuthenticationService
         this._userRepository = userRepository;
     }
 
-    public AuthenticationResult Register(string firstName, string lastName, string username, string email, string password)
+    public ErrorOr<AuthenticationResult> Register(string firstName, string lastName, string username, string email, string password)
     {
         // Check if user already exists - check email
         if (_userRepository.GetUserByEmail(email) is not null)
         {
-            throw new Exception("User with given email already exists.");
+            return Errors.User.DuplicateEmail;
         }
 
 
@@ -42,18 +44,18 @@ public class AuthenticationService : IAuthenticationService
             user,
             token);
     }
-    public AuthenticationResult Login(string email, string password)
+    public ErrorOr<AuthenticationResult> Login(string email, string password)
     {
         // 1. Validate existance
         if (_userRepository.GetUserByEmail(email) is not User user)
         {
-            throw new Exception("User with given email does not exist.");
+            return Errors.Authentication.InvalidCredentials;
         }
 
         // 2. Password is correct?
         if (user.Password != password)
         {
-            throw new Exception("Invalid credentials.");
+            return Errors.Authentication.InvalidCredentials;
         }
 
         // 3. Create JWT token

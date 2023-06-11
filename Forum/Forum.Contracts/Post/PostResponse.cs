@@ -8,6 +8,6 @@ namespace Forum.Contracts.Post
 {
     public record PostResponse
     {
-        s
+        
     }
 }

@@ -9,22 +9,6 @@ namespace Forum.Data.Entities
 {
     public class Post
     {
-       public Post(
-       Guid id,
-       string title,
-       string content,
-       Guid userId,
-       DateTime lastEditedDate,
-       DateTime createdDate)
-        {
-            Id = id;
-            Title = title;
-            Content = content;
-            UserId = userId;
-            LastEditedDate = lastEditedDate;
-            CreatedDate = createdDate;
-        }
-
         public Guid Id { get; }
         public string Title { get; }
         public string Content { get; }

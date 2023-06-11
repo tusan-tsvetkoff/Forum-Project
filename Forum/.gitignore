@@ -5,3 +5,5 @@ obj/
 # Ignore sensitive information
 config.ini
 credentials.txt
+
+.vs/

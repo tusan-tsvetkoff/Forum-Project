@@ -1,6 +1,8 @@
 ﻿using Forum.Application.Common.Interfaces.Authentication;
+using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Application.Common.Interfaces.Services;
 using Forum.Infrastructure.Authentication;
+using Forum.Infrastructure.Persistence;
 using Forum.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,8 @@ public static class DependencyInjection
 
         services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
         return services;
     }
 }

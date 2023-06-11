@@ -6,4 +6,5 @@ public record AuthenticationResponse(
         string FirstName,
         string LastName,
         string Username,
+        string Email,
         string Token);

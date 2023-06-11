@@ -14,7 +14,7 @@ namespace Forum.Data.Entities
         public string Content { get; } = null!;
         public Guid UserId { get; }
         public User User { get; } = null!;
-        //  public List<Comment> Comments { get; }
+       // public List<Comment> Comments { get; }
         public DateTime CreatedDate { get; }
         public DateTime LastEditedDate { get; }
     }

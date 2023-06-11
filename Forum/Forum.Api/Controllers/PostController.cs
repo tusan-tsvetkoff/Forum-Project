@@ -1,4 +1,5 @@
-﻿using Forum.Application.Services.Post;
+﻿using Forum.Application.Services.Posts;
+using Forum.Contracts.Post;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Forum.Api.Controllers
@@ -17,7 +18,15 @@ namespace Forum.Api.Controllers
         [HttpGet("")]
         public IActionResult GetAll() 
         {
-            return Ok(_postService.GetPosts());
+            try
+            {
+                return Ok(_postService.GetPosts());
+            }
+            catch ()
+            { 
+            
+            }
+         
         }
 
     }

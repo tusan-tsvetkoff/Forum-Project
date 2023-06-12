@@ -1,4 +1,5 @@
-﻿using Forum.Models.Entities;
+﻿using Forum.Data.UserAggregate.ValueObjects;
+using Forum.Data.UserAggregate;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,4 +12,6 @@ public interface IUserRepository
 {
     User? GetUserByEmail(string email);
     void Add(User user);
+    void Update(User user);
+    User GetUserById(UserId userId);
 }

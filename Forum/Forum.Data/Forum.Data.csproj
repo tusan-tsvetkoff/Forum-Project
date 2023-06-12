@@ -3,6 +3,10 @@
     <PackageReference Include="ErrorOr" Version="1.2.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
 </ItemGroup>
+<ItemGroup>
+  <Folder Include="Entities\" />
+  <Folder Include="PostAggregate\Events\" />
+</ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>

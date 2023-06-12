@@ -4,5 +4,5 @@ namespace Forum.Infrastructure.Services;
 
 public class DateTimeProvider : IDateTimeProvider
 {
-    public DateTime UtcNow => DateTime.UtcNow.AddMinutes(60);
+    public DateTime UtcNow => DateTime.UtcNow;
 }

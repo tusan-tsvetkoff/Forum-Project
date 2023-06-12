@@ -1,0 +1,12 @@
+@host=https://localhost:7050
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwOGY1YmZhNy03ZDIzLTQ3ODEtYmJiZi03YmRlNWNkNTA1ZDgiLCJnaXZlbl9uYW1lIjoiSmFtZXMiLCJmYW1pbHlfbmFtZSI6Ik1jQXZveSIsImp0aSI6IjZmNWYxNjcxLWM5ZDMtNDIxOC04NmFmLTRiNzIwNTFhY2Y2OCIsImV4cCI6MTY4NjYwNjU2MiwiaXNzIjoiRm9ydW1Qcm9qZWN0IiwiYXVkIjoiRm9ydW1Qcm9qZWN0In0.OcCd5A15S7t_8JtH6Ur8albYr4ve2SBVEP8YTkdr2I8
+@user=putklaasd
+@authorId=skadkaskda
+POST {{host}}/posts/{{authorId}}
+
+Authorization: Bearer {{token}}
+
+{
+    "title": "aASD",
+    "content": "ASDASDASD"
+}

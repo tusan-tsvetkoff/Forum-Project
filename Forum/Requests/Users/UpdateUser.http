@@ -1,0 +1,15 @@
+@host=https://localhost:7050
+@postId=dedwdewd-dwdwedwed-dqweqwzxcsdg-erwgebfb
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJGb3J1bS5EYXRhLlVzZXJBZ2dyZWdhdGUuVmFsdWVPYmplY3RzLlVzZXJJZCIsImdpdmVuX25hbWUiOiJKYW1lcyIsImZhbWlseV9uYW1lIjoiTWNBdm95IiwianRpIjoiZGU5YTQ2ZWMtZTJlNS00ZTFhLWE4ZTktMzExNDQ5NDhjOTIxIiwidW5pcXVlX25hbWUiOiJlNzMyOTFhMS0wMzRmLTQ3MDMtOGMxNy1mODc0MmYxZTkxZDEiLCJleHAiOjE2ODY1Nzg4ODMsImlzcyI6IkZvcnVtUHJvamVjdCIsImF1ZCI6IkZvcnVtUHJvamVjdCJ9.xWzuOgmfUR0cldzQ281OeqLX62tpDCoTYfT2yUazwqk
+@commenterId=asdaksdkaskdsa
+@userId=a45e1606-11fc-4862-b1c4-51b0354bbaed
+PUT {{host}}/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "email": "laina@gmail.com",
+    "firstName": "ptuka",
+    "lastName": "schesna",
+    "country": "Bulgaria"
+}

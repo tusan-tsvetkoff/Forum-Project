@@ -1,4 +1,4 @@
-using Forum.Models.Entities;
+using Forum.Data.UserAggregate;
 
 namespace Forum.Application.Authentication.Common;
 

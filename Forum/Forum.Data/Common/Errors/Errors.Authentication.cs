@@ -13,6 +13,9 @@ public static partial class Errors
     {
         public static Error InvalidCredentials => Error.Validation(
             description: "Login credentials are wrong.",
-            code: "User.InvalidCredentials");
+            code: "Authorization.InvalidCredentials");
+        public static Error UnauthorizedAction => Error.Unexpected(
+            description: "Please log in or register to continue.",
+            code: "Authentication.UnauthorizedAction");
     }
 }

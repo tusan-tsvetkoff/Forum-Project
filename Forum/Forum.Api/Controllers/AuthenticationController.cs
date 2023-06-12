@@ -1,6 +1,4 @@
-using ErrorOr;
 using Forum.Application.Authentication.Commands.Register;
-using Forum.Application.Authentication.Common;
 using Forum.Application.Authentication.Queries.Login;
 using Forum.Contracts.Authentication;
 using Forum.Data.Common.Errors;
@@ -53,7 +51,6 @@ public class AuthenticationController : ApiController
 
         return authResult.Match(
             authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
-            errors => Problem(errors)
-            );
+            errors => Problem(errors));
     }
 }

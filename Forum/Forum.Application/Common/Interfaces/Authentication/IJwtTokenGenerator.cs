@@ -1,4 +1,4 @@
-﻿using Forum.Models.Entities;
+﻿using Forum.Data.UserAggregate;
 using System;
 using System.Collections.Generic;
 using System.Linq;

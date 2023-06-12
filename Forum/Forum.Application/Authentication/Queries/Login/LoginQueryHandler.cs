@@ -3,7 +3,7 @@ using Forum.Application.Common.Interfaces.Authentication;
 using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Application.Authentication.Common;
 using Forum.Data.Common.Errors;
-using Forum.Models.Entities;
+using Forum.Data.UserAggregate;
 using MediatR;
 
 namespace Forum.Application.Authentication.Queries.Login

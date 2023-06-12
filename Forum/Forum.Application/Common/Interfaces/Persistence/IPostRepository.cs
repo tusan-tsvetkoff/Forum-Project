@@ -1,4 +1,6 @@
-﻿using Forum.Data.Entities;
+﻿using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.PostAggregate;
+using Forum.Data.UserAggregate.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +11,8 @@ namespace Forum.Application.Common.Interfaces.Persistence
 {
     public interface IPostRepository
     {
-        //public Post GetPost(string title);
-        //public Post CreatePost(Guid UserId, Post post);
-        //public Post UpdatePost(Guid postId, Post post);
-        //public bool DeletePost(Guid postId);
-        public List<Post> GetPosts();
+        Task AddAsync(Post post);
+        Task<int> GetPostCountAsync();
+        Task<List<Post>> ListAsync(AuthorId authorId);
     }
 }

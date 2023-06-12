@@ -4,43 +4,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Forum.Data.Models
+namespace Forum.Data.Models;
+
+public abstract class ValueObject : IEquatable<ValueObject>
 {
-    public abstract class ValueObject : IEquatable<ValueObject>
+    public abstract IEnumerable<object?> GetEqualityComponents();
+
+    public override bool Equals(object? obj)
     {
-        public abstract IEnumerable<object> GetEqualityComponents();
-        public override bool Equals(object? obj)
+        if (obj is null || obj.GetType() != GetType())
         {
-            if (obj is null || obj.GetType() != typeof(ValueObject))
-            {
-                return false;
-            }
-
-            var valueObject = (ValueObject) obj;
-            return GetEqualityComponents()
-                .SequenceEqual(valueObject.GetEqualityComponents());
+            return false;
         }
 
-        public static bool operator ==(ValueObject left, ValueObject right)
-        {
-            return Equals(left, right);
-        }
+        var valueObject = (ValueObject)obj;
 
-        public static bool operator !=(ValueObject left, ValueObject right)
-        {
-            return !Equals(left, right);
-        }
+        return GetEqualityComponents()
+            .SequenceEqual(valueObject.GetEqualityComponents());
+    }
 
-        public override int GetHashCode()
-        {
-            return GetEqualityComponents()
-                .Select(x => x?.GetHashCode() ?? 0)
-                .Aggregate((x, y) => x ^ y);
-        }
+    public static bool operator ==(ValueObject left, ValueObject right)
+    {
+        return Equals(left, right);
+    }
 
-        public bool Equals(ValueObject? other)
-        {
-            return Equals((object?)other);
-        }
+    public static bool operator !=(ValueObject left, ValueObject right)
+    {
+        return !Equals(left, right);
+    }
+
+    public override int GetHashCode()
+    {
+        return GetEqualityComponents()
+            .Select(x => x?.GetHashCode() ?? 0)
+            .Aggregate((x, y) => x ^ y);
+    }
+
+    public bool Equals(ValueObject? other)
+    {
+        return Equals((object?)other);
     }
 }

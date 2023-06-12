@@ -1,0 +1,11 @@
+@host=https://localhost:7050
+@postId=dedwdewd-dwdwedwed-dqweqwzxcsdg-erwgebfb
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzYWY3ZWQ2Yy00ZjFkLTRmODktYjM0ZS03ZWM2NmFiYmE0MTIiLCJnaXZlbl9uYW1lIjoiSmFtZXMiLCJmYW1pbHlfbmFtZSI6Ik1jQXZveSIsImp0aSI6IjgwMTMwMTUwLThlNGEtNGVlYi1iZjkzLWEwMDQ0ZGEyMjBmOSIsInVuaXF1ZV9uYW1lIjoiN2M2NzdiM2EtNTVlMC00ZTQ4LWFhMTItYjNkOTdmNDc5OTkxIiwiZXhwIjoxNjg2NTM5NjA5LCJpc3MiOiJGb3J1bVByb2plY3QiLCJhdWQiOiJGb3J1bVByb2plY3QifQ.mLeAF29Ceh_szc1gQ5V1gVjbTnL-eQ4swBJsfXEf-h0
+@commenterId=asdaksdkaskdsa
+POST {{host}}/posts/{{postId}}/comments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "content": "This is a mystery comment."
+}

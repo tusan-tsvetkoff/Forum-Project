@@ -1,16 +1,11 @@
 ﻿using Forum.Application.Common.Interfaces.Authentication;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Forum.Application.Common.Interfaces.Services;
+using Forum.Data.UserAggregate;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.DependencyInjection;
-using Forum.Application.Common.Interfaces.Services;
-using Microsoft.Extensions.Options;
-using Forum.Models.Entities;
 
 namespace Forum.Infrastructure.Authentication
 {
@@ -34,11 +29,10 @@ namespace Forum.Infrastructure.Authentication
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.Value.ToString()),
                 new Claim(JwtRegisteredClaimNames.GivenName, user.FirstName),
                 new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, Guid.NewGuid().ToString())
             };
 
             var securityToken = new JwtSecurityToken(

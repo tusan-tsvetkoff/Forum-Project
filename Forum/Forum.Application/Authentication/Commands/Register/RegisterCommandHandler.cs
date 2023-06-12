@@ -1,10 +1,11 @@
 ﻿using ErrorOr;
+using Forum.Application.Authentication.Common;
 using Forum.Application.Common.Interfaces.Authentication;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Application.Authentication.Common;
-using Forum.Models.Entities;
-using MediatR;
 using Forum.Data.Common.Errors;
+using MediatR;
+using Forum.Data.UserAggregate;
+using Forum.Data.UserAggregate.ValueObjects;
 
 namespace Forum.Application.Authentication.Commands.Register;
 
@@ -22,21 +23,21 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        // Check if user already exists - check email
+        // 1. Checking if the email is unique in the system or not.
         if (_userRepository.GetUserByEmail(command.Email) is not null)
         {
             return Errors.User.DuplicateEmail;
         }
 
-        // Create user (generate unique ID)
-        var user = new User
-        {
-            Email = command.Email,
-            Password = command.Password,
-            FirstName = command.FirstName,
-            LastName = command.LastName,
-            Username = command.Username
-        };
+        // 2.Creating a user (generating a unique ID) & Persisting to DB(in-memory for now).
+
+        var user = User.Create(
+            firstName: command.FirstName,
+            lastName: command.LastName,
+            email: command.Email,
+            username: command.Username,
+            password: command.Password
+            );
         _userRepository.Add(user);
 
         // Create JWT Token

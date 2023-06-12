@@ -6,7 +6,7 @@ namespace Forum.Api.Controllers
 {
     [ApiController]
     [Route("post")]
-    public class PostController:ControllerBase
+    public class PostController : ControllerBase
     {
         private readonly IPostService _postService;
 
@@ -16,17 +16,9 @@ namespace Forum.Api.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetAll() 
+        public IActionResult GetAll()
         {
-            try
-            {
-                return Ok(_postService.GetPosts());
-            }
-            catch ()
-            { 
-            
-            }
-         
+            return Ok(_postService.GetPosts());
         }
 
     }

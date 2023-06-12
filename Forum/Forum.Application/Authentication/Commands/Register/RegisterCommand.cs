@@ -10,5 +10,3 @@ public record RegisterCommand(
     string Username,
     string Email,
     string Password) : IRequest<ErrorOr<AuthenticationResult>>;
-
-

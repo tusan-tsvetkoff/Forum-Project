@@ -18,22 +18,22 @@ namespace Forum.Application.Services.Posts
             this._postRepository = postRepository;
         }
 
-        public List<Post> GetPosts()
-        { 
-            var posts = _postRepository.GetPosts();
+        /*        public List<Post> GetPosts()
+                {
+                    var posts = _postRepository.GetPosts();
 
-            foreach (var post in posts)
-            {
-                PostResult result = new PostResult(
-                    Id: post.Id,
-                    Title: post.Title,
-                    Content: post.Content,
-                    UserId: post.UserId,
-                  // Comments:post.comment,
-                  CreatedDate: post.CreatedDate,
-                  LastEditedDate: post.LastEditedDate);
-            }
+                    foreach (var post in posts)
+                    {
+                        PostResult result = new PostResult(
+                            Id: post.Id,
+                            Title: post.Title,
+                            Content: post.Content,
+                            UserId: post.UserId,
+                          // Comments:post.comment,
+                          CreatedDate: post.CreatedDate,
+                          LastEditedDate: post.LastEditedDate);
+                    }
 
-        }
+                }*/
     }
 }

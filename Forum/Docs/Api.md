@@ -137,6 +137,32 @@ GET {{host}}/api/posts/top-likes?limit={Upvote.Count}&sort=desc
 GET {{host}}/api/posts/top-likes?limit={Comments.Count}&sort=desc
 ```
 
+# Commenting
+
+## Comment
+
+```js
+POST {{host}}/posts/{postId}/comments
+```
+
+## Comment Request
+
+```json
+"content": "This is a mystery comment."
+```
+
+## Comment Response
+```js
+201 Created
+```
+```json
+"id": "0000000-000000-000-0000000-000000",
+"content": "This is a mystery comment.",
+"commenterId": "000000-000000-0000-00-0000000",
+"postId": ""
+```
+
+
 
 
 

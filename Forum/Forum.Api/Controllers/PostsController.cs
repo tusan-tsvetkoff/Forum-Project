@@ -1,7 +1,9 @@
-﻿using Forum.Application.Posts.Commands.CreatePost;
+﻿using ErrorOr;
+using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
+using Forum.Data.Common.Errors;
 using Forum.Infrastructure.Authentication;
 using MapsterMapper;
 using MediatR;
@@ -123,13 +125,22 @@ public class PostsController : ApiController
         return Ok(); // Return 200 OK response, or any errors with ErrorOr
     }
 
-    [HttpDelete("{postId}")]
-    public async Task<IActionResult> DeletePost([FromRoute] string postId, [FromHeader(Name = "Authorization")] string authorizationHeader)
+    [HttpDelete("{postId:guid}")]
+    public async Task<IActionResult> DeletePost([FromRoute] Guid postId, [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
         string userId = GetUserIdFromToken(token);
 
-        var command = _mapper.Map<DeletePostCommand>((postId, userId));
+        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultId)
+            ? resultId
+            : Errors.Authentication.InvalidGuid;
+
+        if(userIdResult.IsError)
+        {
+            return Problem(userIdResult.ErrorsOrEmptyList);
+        }
+
+        var command = _mapper.Map<DeletePostCommand>((postId, resultId));
 
         var commandResult = await _mediator.Send(command);
 

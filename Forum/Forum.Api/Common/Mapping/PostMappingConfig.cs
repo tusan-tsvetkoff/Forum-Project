@@ -20,9 +20,9 @@ public class PostMappingConfig : IRegister
         config.NewConfig<string, ListPostsQuery>()
             .MapWith(src => new ListPostsQuery(src));
 
-        config.NewConfig<(string postId, string userId), DeletePostCommand>()
-            .Map(dest => dest.UserId, src => src.userId)
-            .Map(dest => dest.PostId, src => src.postId);
+        config.NewConfig<(Guid PostId, Guid UserId), DeletePostCommand>()
+            .Map(dest => dest.UserId, src => src.UserId)
+            .Map(dest => dest.PostId, src => src.PostId);
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())

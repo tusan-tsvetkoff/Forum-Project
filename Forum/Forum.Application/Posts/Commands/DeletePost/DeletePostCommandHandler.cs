@@ -22,26 +22,14 @@ public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, Error
 
     public async Task<ErrorOr<Post>> Handle(DeletePostCommand command, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(command.UserId, out Guid userId))
-        {
-            return Errors.Authentication.InvalidGuid;
-        }
+        var post = await _postRepository.GeTByIdAsync(PostId.Create(command.PostId));
 
-        if(!Guid.TryParse(command.PostId, out Guid postId))
-        {
-            return Errors.Authentication.InvalidGuid;
-        }
-
-        var post = await _postRepository.GeTByIdAsync(PostId.Create(postId));
-
-        // Ensure that only the author of the post can delete it
-        if (post.UserId != UserId.Create(userId))
+        if (post.UserId != UserId.Create(command.UserId))
         {
             return Errors.Authentication.UnauthorizedAction;
         }
 
         await _postRepository.DeleteAsync(PostId.Create(post.Id.Value));
-
         return post;
     }
 }

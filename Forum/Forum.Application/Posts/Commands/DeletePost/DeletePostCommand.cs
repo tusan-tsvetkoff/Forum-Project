@@ -5,5 +5,5 @@ using MediatR;
 namespace Forum.Application.Posts.Commands.DeletePost;
 
 public record DeletePostCommand(
-    string UserId,
-    string PostId) : IRequest<ErrorOr<Post>>;
+    Guid UserId,
+    Guid PostId) : IRequest<ErrorOr<Post>>;

@@ -1,8 +1,6 @@
 using Forum.Api;
-using Forum.Api.Common.Errors;
 using Forum.Application;
 using Forum.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 {

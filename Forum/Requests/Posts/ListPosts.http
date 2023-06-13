@@ -2,11 +2,6 @@
 @token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjNzViNTE1ZS1iZjExLTRlMDctODQ4Ni01NWM3NjVkZDFmN2QiLCJnaXZlbl9uYW1lIjoiSmFtZXMiLCJmYW1pbHlfbmFtZSI6Ik1jQXZveSIsImp0aSI6ImYxODFiNmQ0LWE2NTMtNDFjZi1hODc3LTVhNDQ1NzcwNTI3NyIsImV4cCI6MTY4NjYxMTM0NSwiaXNzIjoiRm9ydW1Qcm9qZWN0IiwiYXVkIjoiRm9ydW1Qcm9qZWN0In0.6Uxk8dEOEIMZO3_AlkOQamWrv7H75avF9P6xBf9Dr7I
 @user=putklaasd
 @authorId=skadkaskda
-POST {{host}}/posts/{{authorId}}
+GET {{host}}/posts/{{authorId}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
-
-{
-    "title": "aASD",
-    "content": "ASDASDASD"
-}

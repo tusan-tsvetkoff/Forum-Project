@@ -25,7 +25,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
         public async Task<List<Post>> ListAsync(AuthorId authorId)
         {
             await Task.CompletedTask;
-            return _posts.Where(post => post.AuthorId == authorId).ToList();
+            return _posts.Where(post => post.UserId == authorId).ToList();
         }
 
         public async Task<int> GetPostCountAsync()

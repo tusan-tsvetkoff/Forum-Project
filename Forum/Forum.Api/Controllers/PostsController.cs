@@ -1,25 +1,33 @@
 ﻿using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
+using Forum.Infrastructure.Authentication;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Forum.Api.Controllers;
 
-[Route("posts/{authorId}")]
+[Route("api/posts")]
 public class PostsController : ApiController
 {
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
+    private readonly JwtSettings _jwtSettings;
 
-    public PostsController(IMapper mapper, IMediator mediator)
+    public PostsController(IMapper mapper, IMediator mediator, IOptions<JwtSettings> jwtSettings)
     {
         _mapper = mapper;
         _mediator = mediator;
+        _jwtSettings = jwtSettings.Value;
     }
 
-    [HttpPost]
+/*    [HttpPost]
     public async Task<IActionResult> CreatePost(CreatePostRequest request, string authorId)
     {
         var command = _mapper.Map<CreatePostCommand>((request, authorId));
@@ -29,9 +37,24 @@ public class PostsController : ApiController
         return createPostResult.Match(
             post => Ok(_mapper.Map<PostResponse>(post)),
             errors => Problem(errors));
+    }*/
+
+    [HttpPost("")]
+    public async Task<IActionResult> CreatePost(CreatePostRequest request, [FromHeader(Name = "Authorization")] string authorizationHeader)
+    {
+        string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
+        string userId = GetUserIdFromToken(token);
+
+        var command = _mapper.Map<CreatePostCommand>((request, userId));
+
+        var createPostResult = await _mediator.Send(command);
+
+        return createPostResult.Match(
+            post => Ok(_mapper.Map<PostResponse>(post)),
+            errors => Problem(errors));
     }
 
-    [HttpGet]
+    [HttpGet()]
     public async Task<IActionResult> ListPosts(string authorId)
     {
         var query = _mapper.Map<ListPostsQuery>(authorId);
@@ -42,6 +65,32 @@ public class PostsController : ApiController
             posts => Ok(posts.Select(post=> _mapper.Map<PostResponse>(post))),
             errors => Problem(errors));
     }
+    private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
+    {
+        return authorizationHeader?.Replace("Bearer ", string.Empty);
+    }
+
+    private string GetUserIdFromToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = _jwtSettings.Issuer,
+            ValidAudience = _jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret))
+        };
+
+        var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);      
+        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        //var userId = userIdClaims;
+        return userId;
+    }
+     
 
     [HttpPost]
     [Route("api/posts/{postId}/like")]

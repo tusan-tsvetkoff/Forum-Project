@@ -4,10 +4,10 @@ POST {{host}}/auth/register
 Content-Type: application/json
 
 {
-"firstName": "James",
-"lastName": "McAvoy",
-"username": "jmaccas",
-"email": "jmassac@gmail.com",
+"firstName": "Iliyan",
+"lastName": "Tsvetkov",
+"username": "iliyantsvetkov",
+"email": "asjmassac@gmail.com",
 "password": "abigsecretpasswordguy123"
 }
 

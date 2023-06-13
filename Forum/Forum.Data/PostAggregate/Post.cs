@@ -17,34 +17,39 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public DateTime UpdatedDateTime { get; private set; }
     public Likes Likes { get; private set; }
     public Dislikes Dislikes { get; private set; }
-    public AuthorId AuthorId { get; private set; }
+    public UserId UserId { get; private set; }
+    //public AuthorId AuthorId { get; private set; }
 
+
+    // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
     public Post(
         PostId postId,
         string title,
         string content,
         DateTime createdDateTime,
-        AuthorId authorId)
+        UserId userId)
         : base(id: postId)
     {
         Title = title;
         Content = content;
         CreatedDateTime = createdDateTime;
-        AuthorId = authorId;
+        UserId = userId;
+        //AuthorId = authorId;
     }
 
     public static Post Create(
         string title,
         string content,
-        AuthorId authorId)
+        UserId userId)
     {
+         // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
         // enforce invariants later
         var post = new Post(
             PostId.CreateUnique(),
             title,
             content,
             DateTime.UtcNow,
-            authorId
+            userId
             );
         return post;
     }

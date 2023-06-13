@@ -4,6 +4,7 @@ using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate;
 using Forum.Data.UserAggregate;
+using Forum.Data.UserAggregate.ValueObjects;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -26,11 +27,15 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
 
     public async Task<ErrorOr<Post>> Handle(CreatePostCommand command, CancellationToken cancellationToken)
     {
+        if (!Guid.TryParse(command.UserId, out Guid userId))
+        {
+            return Errors.Authentication.InvalidGuid;
+        }
+
         var post = Post.Create(
             command.Content,
             command.Title,
-            AuthorId.Create(command.AuthorId));
-
+            UserId.Create(userId));
 
         await _postRepository.AddAsync(post);
 

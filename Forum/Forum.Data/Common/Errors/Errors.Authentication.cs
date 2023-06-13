@@ -17,5 +17,8 @@ public static partial class Errors
         public static Error UnauthorizedAction => Error.Unexpected(
             description: "Please log in or register to continue.",
             code: "Authentication.UnauthorizedAction");
+        public static Error InvalidGuid => Error.Unexpected(
+            description: "ID did not match correct type.",
+            code: "Authentication.InvalidGuid");
     }
 }

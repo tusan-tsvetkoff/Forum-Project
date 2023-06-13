@@ -1,5 +1,6 @@
 ﻿using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
+using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace Forum.Application.Common.Interfaces.Persistence
     public interface IPostRepository
     {
         Task AddAsync(Post post);
+        Task DeleteAsync(PostId postId);
+        Task<Post> GeTByIdAsync(PostId postId);
         Task<int> GetPostCountAsync();
         Task<List<Post>> ListAsync(AuthorId authorId);
     }

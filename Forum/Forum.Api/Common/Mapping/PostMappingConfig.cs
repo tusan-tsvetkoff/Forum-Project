@@ -1,4 +1,5 @@
 ﻿using Forum.Application.Posts.Commands.CreatePost;
+using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
@@ -18,6 +19,10 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<string, ListPostsQuery>()
             .MapWith(src => new ListPostsQuery(src));
+
+        config.NewConfig<(string postId, string userId), DeletePostCommand>()
+            .Map(dest => dest.UserId, src => src.userId)
+            .Map(dest => dest.PostId, src => src.postId);
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())

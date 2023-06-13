@@ -1,4 +1,5 @@
 ﻿using Forum.Application.Posts.Commands.CreatePost;
+using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Infrastructure.Authentication;
@@ -120,5 +121,20 @@ public class PostsController : ApiController
         // Update the post and also add the post in the User's post list
 
         return Ok(); // Return 200 OK response, or any errors with ErrorOr
+    }
+
+    [HttpDelete("{postId}")]
+    public async Task<IActionResult> DeletePost([FromRoute] string postId, [FromHeader(Name = "Authorization")] string authorizationHeader)
+    {
+        string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
+        string userId = GetUserIdFromToken(token);
+
+        var command = _mapper.Map<DeletePostCommand>((postId, userId));
+
+        var commandResult = await _mediator.Send(command);
+
+        return commandResult.Match(
+            deleted => Ok(StatusCodes.Status204NoContent),
+            errors => Problem(errors));
     }
 }

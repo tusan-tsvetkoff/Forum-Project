@@ -1,6 +1,7 @@
 ﻿using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
+using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -22,10 +23,25 @@ namespace Forum.Infrastructure.Persistence.Repositories
             _posts.Add(post);
         }
 
+        public async Task<Post> GeTByIdAsync(PostId postId)
+        {
+            return _posts.SingleOrDefault(post => post.Id == postId);
+        }
+
         public async Task<List<Post>> ListAsync(AuthorId authorId)
         {
             await Task.CompletedTask;
             return _posts.Where(post => post.UserId == authorId).ToList();
+        }
+
+        public async Task DeleteAsync(PostId postId)
+        {
+            var postToRemove = _posts.SingleOrDefault(post => post.Id == postId);
+            if (postToRemove != null)
+            {
+                _posts.Remove(postToRemove);
+            }
+            await Task.CompletedTask;
         }
 
         public async Task<int> GetPostCountAsync()

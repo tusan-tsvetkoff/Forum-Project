@@ -23,7 +23,7 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Guid, GetPostQuery>()
             .Map(dest => dest.PostId, src => src);
-            
+
 
         config.NewConfig<(Guid PostId, Guid UserId), DeletePostCommand>()
             .Map(dest => dest.UserId, src => src.UserId)
@@ -34,3 +34,4 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.UserId, src => src.UserId.Value);
     }
 }
+

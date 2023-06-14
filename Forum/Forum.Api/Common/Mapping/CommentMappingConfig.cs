@@ -2,7 +2,6 @@
 using Forum.Contracts.Comment;
 using Forum.Data.PostAggregate.Entities;
 using Mapster;
-using CommentResponse = Forum.Contracts.Comment.CommentResponse;
 
 namespace Forum.Api.Common.Mapping
 {

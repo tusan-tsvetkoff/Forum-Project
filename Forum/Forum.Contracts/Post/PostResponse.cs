@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Forum.Contracts.Comment;
 
 namespace Forum.Contracts.Post;
 
@@ -16,13 +12,6 @@ public record PostResponse(
      Likes Likes,
      Likes Dislikes,
      List<CommentResponse> Comments);
-
-
-public record CommentResponse(
-    string Id,
-    string AuthorId,
-    string Content,
-    DateTime CreatedDateTime);
 
 public record Likes(
     int Value);

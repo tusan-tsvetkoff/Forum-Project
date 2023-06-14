@@ -25,9 +25,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         {
             return Errors.Post.NotFound;
         }
-
-        var comment = Comment.Create(UserId.Create(command.UserId), command.Content);
-
+        var comment = post.AddComment(command.Content, UserId.Create(command.UserId));
 
         return comment;
     }

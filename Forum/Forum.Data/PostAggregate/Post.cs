@@ -57,10 +57,15 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         return post;
     }
 
-    public void AddComment(string content, UserId userId)
+    public ErrorOr<Comment> AddComment(string content, UserId userId)
     {
+        if (content.Length < 1)
+        {
+            return Errors.Post.TitleLength;
+        }
         var comment = Comment.Create(userId, content);
         _comments.Add(comment);
+        return comment;
     }
 
     public ErrorOr<Updated> From(string newContent, CommentId commentId)

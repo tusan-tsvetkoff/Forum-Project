@@ -1,4 +1,5 @@
 using Forum.Api.Common.Errors;
+using Forum.Api.Common.Helpers;
 using Forum.Api.Common.Mapping;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Reflection;
@@ -11,6 +12,7 @@ public static class DependencyInjection
     {
         services.AddControllers();
         services.AddSingleton<ProblemDetailsFactory, ForumProblemDetailsFactory>();
+        services.AddSingleton<IUserIdProvider, TokenUserIdProvider>();
         services.AddMappings();
         return services;
     }

@@ -1,18 +1,13 @@
 ﻿using ErrorOr;
+using Forum.Api.Common.Helpers;
 using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.Common.Errors;
-using Forum.Infrastructure.Authentication;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace Forum.Api.Controllers;
 
@@ -21,32 +16,20 @@ public class PostsController : ApiController
 {
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    private readonly JwtSettings _jwtSettings;
+    private readonly IUserIdProvider _userIdProvider;
 
-    public PostsController(IMapper mapper, IMediator mediator, IOptions<JwtSettings> jwtSettings)
+    public PostsController(IMapper mapper, IMediator mediator, IUserIdProvider userIdProvider)
     {
         _mapper = mapper;
         _mediator = mediator;
-        _jwtSettings = jwtSettings.Value;
+        _userIdProvider = userIdProvider;
     }
-
-/*    [HttpPost]
-    public async Task<IActionResult> CreatePost(CreatePostRequest request, string authorId)
-    {
-        var command = _mapper.Map<CreatePostCommand>((request, authorId));
-
-        var createPostResult = await _mediator.Send(command);
-
-        return createPostResult.Match(
-            post => Ok(_mapper.Map<PostResponse>(post)),
-            errors => Problem(errors));
-    }*/
 
     [HttpPost("")]
     public async Task<IActionResult> CreatePost(CreatePostRequest request, [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        string userId = GetUserIdFromToken(token);
+        string userId = _userIdProvider.GetUserId(token);
 
         var command = _mapper.Map<CreatePostCommand>((request, userId));
 
@@ -71,29 +54,7 @@ public class PostsController : ApiController
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {
         return authorizationHeader?.Replace("Bearer ", string.Empty);
-    }
-
-    private string GetUserIdFromToken(string token)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = _jwtSettings.Issuer,
-            ValidAudience = _jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret))
-        };
-
-        var principal = tokenHandler.ValidateToken(token, validationParameters, out var validatedToken);      
-        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        //var userId = userIdClaims;
-        return userId;
-    }
-     
+    }    
 
     [HttpPost]
     [Route("api/posts/{postId}/like")]
@@ -129,7 +90,7 @@ public class PostsController : ApiController
     public async Task<IActionResult> DeletePost([FromRoute] Guid postId, [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        string userId = GetUserIdFromToken(token);
+        string userId = _userIdProvider.GetUserId(token);
 
         ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultId)
             ? resultId

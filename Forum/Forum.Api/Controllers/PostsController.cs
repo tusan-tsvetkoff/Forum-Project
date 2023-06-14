@@ -32,6 +32,17 @@ public class PostsController : ApiController
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
         string userId = _userIdProvider.GetUserId(token);
 
+        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultId)
+                ? resultId
+                : Errors.Authentication.InvalidGuid;
+
+        if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status415UnsupportedMediaType,
+                title: userIdResult.FirstError.Description);
+        }
+
         var command = _mapper.Map<CreatePostCommand>((request, userId));
 
         var createPostResult = await _mediator.Send(command);
@@ -111,7 +122,9 @@ public class PostsController : ApiController
 
         if (userIdResult.IsError)
         {
-            return Problem(userIdResult.ErrorsOrEmptyList);
+            return Problem(
+                statusCode: StatusCodes.Status415UnsupportedMediaType,
+                title: userIdResult.FirstError.Description);
         }
 
         var command = _mapper.Map<DeletePostCommand>((postId, resultId));

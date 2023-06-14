@@ -37,11 +37,13 @@ public class CommentsApiController : ApiController
             ? resultUserId
             : Errors.Authentication.InvalidGuid;
 
-        if (userIdResult.IsError)
+        if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
         {
-            return Problem(userIdResult.Errors);
+            return Problem(
+                statusCode: StatusCodes.Status415UnsupportedMediaType,
+                title: userIdResult.FirstError.Description);
         }
-        
+
         var command = _mapper.Map<CreateCommentCommand>((request, resultUserId, postId));
 
         var commandResult = await _mediator.Send(command);
@@ -50,6 +52,8 @@ public class CommentsApiController : ApiController
             comment => Ok(_mapper.Map<CommentResponse>(comment)),
             errors => Problem(errors));
     }
+
+
 
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {

@@ -2,6 +2,7 @@
 using Forum.Api.Common.Helpers;
 using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
+using Forum.Application.Posts.Queries.GetPost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.Common.Errors;
@@ -40,6 +41,18 @@ public class PostsController : ApiController
             errors => Problem(errors));
     }
 
+    [HttpGet("{postId:guid}")]
+    public async Task<IActionResult> GetPost([FromRoute] Guid postId)
+    {
+        var query = _mapper.Map<GetPostQuery>(postId);
+
+        var getPostQuery = await _mediator.Send(query);
+
+        return getPostQuery.Match(
+            post => Ok(_mapper.Map<PostResponse>(post)),
+            errors => Problem(errors));
+    }
+
     [HttpGet()]
     public async Task<IActionResult> ListPosts(string authorId)
     {
@@ -48,13 +61,13 @@ public class PostsController : ApiController
         var listPostsQuery = await _mediator.Send(query);
 
         return listPostsQuery.Match(
-            posts => Ok(posts.Select(post=> _mapper.Map<PostResponse>(post))),
+            posts => Ok(posts.Select(post => _mapper.Map<PostResponse>(post))),
             errors => Problem(errors));
     }
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {
         return authorizationHeader?.Replace("Bearer ", string.Empty);
-    }    
+    }
 
     [HttpPost]
     [Route("api/posts/{postId}/like")]
@@ -96,7 +109,7 @@ public class PostsController : ApiController
             ? resultId
             : Errors.Authentication.InvalidGuid;
 
-        if(userIdResult.IsError)
+        if (userIdResult.IsError)
         {
             return Problem(userIdResult.ErrorsOrEmptyList);
         }

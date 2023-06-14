@@ -8,30 +8,35 @@ namespace Forum.Data.PostAggregate.Entities
     public sealed class Comment : Entity<CommentId>
     {
         public CommentId CommentId { get; }
-        public string Content { get; }
-        public AuthorId AuthorId { get; }
+        public string Content { get; private set; }
+        public UserId UserId { get; }
         public DateTime CreatedDateTime { get; private set; }
         public DateTime UpdatedDateTime { get; private set; }
 
         public Comment(
             string content,
-            AuthorId authorId,
+            UserId userId,
             DateTime createdDateTime)
             : base(id: CommentId.CreateUnique())
         {
             Content = content;
-            AuthorId = authorId;
+            UserId = userId;
             CreatedDateTime = createdDateTime;
         }
 
         public static Comment Create(
-            AuthorId authorId,
+            UserId userId,
             string content)
         {
             return new Comment(
                 content,
-                authorId,
+                userId,
                 DateTime.UtcNow);
+        }
+
+        public void Edit(string newContent)
+        {
+            Content = newContent;
         }
     }
 }

@@ -22,7 +22,7 @@ public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, Error
 
     public async Task<ErrorOr<Post>> Handle(DeletePostCommand command, CancellationToken cancellationToken)
     {
-        var post = await _postRepository.GeTByIdAsync(PostId.Create(command.PostId));
+        var post = await _postRepository.GetByIdAsync(PostId.Create(command.PostId));
 
         if (post.UserId != UserId.Create(command.UserId))
         {

@@ -1,0 +1,11 @@
+@host=https://localhost:7050
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MmUzNzI0Ni1mZDQyLTRiYTgtYTFhNi04ZDk4MjU2MzE2ZTQiLCJnaXZlbl9uYW1lIjoiSWxpeWFuIiwiZmFtaWx5X25hbWUiOiJUc3ZldGtvdiIsImp0aSI6IjIzMTQ4M2NlLTk1ZTktNDkyZS04M2QzLTk4OWYxODk2NzdhNCIsImV4cCI6MTY4NjY5NDc0NCwiaXNzIjoiRm9ydW1Qcm9qZWN0IiwiYXVkIjoiRm9ydW1Qcm9qZWN0In0.tuZePc8qYlncUBVrILt6nlAivmZBkIQFJetmVzsNM2g
+@postId=623a5d2e-9e5a-4e82-b4e2-460650ca3359
+DELETE {{host}}/api/posts/{{postId}}
+
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "request": "623a5d2e-9e5a-4e82-b4e2-460650ca3359"
+} 

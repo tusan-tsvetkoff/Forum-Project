@@ -1,8 +1,11 @@
-﻿using Forum.Data.AuthorAggregate.ValueObjects;
+﻿using ErrorOr;
+using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.Common.Errors;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate.Entities;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
+using System.Net.Mime;
 
 namespace Forum.Data.PostAggregate;
 
@@ -54,10 +57,21 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         return post;
     }
 
-    public void AddComment(string content, AuthorId authorId)
+    public void AddComment(string content, UserId userId)
     {
-        var comment = Comment.Create(authorId, content);
+        var comment = Comment.Create(userId, content);
         _comments.Add(comment);
+    }
+
+    public ErrorOr<Updated> From(string newContent, CommentId commentId)
+    {
+        if (_comments.SingleOrDefault(c => c.Id == commentId) is not Comment comment)
+        {
+            return Errors.User.NotFound;
+        }
+        comment.Edit(newContent);
+
+        return Result.Updated;
     }
 
     public void IncrementLikes()

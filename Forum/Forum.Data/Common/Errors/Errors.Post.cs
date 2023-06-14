@@ -16,7 +16,9 @@ namespace Forum.Data.Common.Errors
                 code: "Post.TitleLength");
             public static Error DescriptionLength => Error.Validation(
                 description: "Content must be between 32 and 8192 symbols.");
-
+            public static Error NotFound => Error.NotFound(
+                description: "Post was not found.",
+                code: "Post.NotFound");
         }
     }
 }

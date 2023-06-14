@@ -23,7 +23,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
             _posts.Add(post);
         }
 
-        public async Task<Post> GeTByIdAsync(PostId postId)
+        public async Task<Post> GetByIdAsync(PostId postId)
         {
             return _posts.SingleOrDefault(post => post.Id == postId);
         }

@@ -53,6 +53,35 @@ public class CommentsApiController : ApiController
             errors => Problem(errors));
     }
 
+/*    [HttpPut("{commentId:guid}")]
+    public async Task<IActionResult> UpdateCommentAsync(
+               [FromRoute] Guid commentId,
+                      [FromBody] UpdateCommentRequest request,
+                             [FromHeader(Name = "Authorization")] string authorizationHeader)
+    {
+        var token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
+        var userId = _userIdProvider.GetUserId(token);
+
+        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultUserId)
+            ? resultUserId
+            : Errors.Authentication.InvalidGuid;
+
+        if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
+        {
+            return Problem(
+                               statusCode: StatusCodes.Status415UnsupportedMediaType,
+                                              title: userIdResult.FirstError.Description);
+        }
+
+        var command = _mapper.Map<UpdateCommentCommand>((request, resultUserId, commentId));
+
+        var commandResult = await _mediator.Send(command);
+
+        return commandResult.Match(
+                       comment => Ok(_mapper.Map<CommentResponse>(comment)),
+                                  errors => Problem(errors));
+    }*/
+
 
 
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)

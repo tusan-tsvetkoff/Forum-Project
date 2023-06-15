@@ -14,6 +14,10 @@ public sealed class UserId : AggregateRootId<Guid>
     {
     }
 
+    public UserId() : base (value: Guid.Empty)
+    {
+    }
+
     public static UserId CreateUnique()
     {
         return new UserId(Guid.NewGuid());

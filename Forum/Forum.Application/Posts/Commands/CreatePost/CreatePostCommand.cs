@@ -11,6 +11,6 @@ using System.Threading.Tasks;
 namespace Forum.Application.Posts.Commands.CreatePost;
 
 public record CreatePostCommand(
-    string UserId,
+    Guid UserId,
     string Title,
     string Content) : IRequest<ErrorOr<Post>>;

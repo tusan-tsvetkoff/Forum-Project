@@ -20,15 +20,10 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
 
     public async Task<ErrorOr<Post>> Handle(CreatePostCommand command, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(command.UserId, out Guid userId))
-        {
-            return Errors.Authentication.InvalidGuid;
-        }
-
         var post = Post.Create(
             command.Content,
             command.Title,
-            UserId.Create(userId));
+            UserId.Create(command.UserId));
 
         await _postRepository.AddAsync(post);
 

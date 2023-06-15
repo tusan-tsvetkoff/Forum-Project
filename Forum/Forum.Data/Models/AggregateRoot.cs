@@ -5,15 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Forum.Data.Models.Identities;
 
-namespace Forum.Data.Models
+namespace Forum.Data.Models;
+
+public abstract class AggregateRoot<TId, TIdType> : Entity<TId>
+    where TId : AggregateRootId<TIdType>
 {
-    public abstract class AggregateRoot<TId, TIdType> : Entity<TId>
-        where TId : AggregateRootId<TIdType>
+    public new AggregateRootId<TIdType> Id { get; protected set; }
+    protected AggregateRoot(TId id) : base(id)
     {
-        public new AggregateRootId<TIdType> Id { get; protected set; }
-        protected AggregateRoot(TId id) : base(id)
-        {
-            Id = id;
-        }
+        Id = id;
     }
+
+#pragma warning disable CS8618
+    protected AggregateRoot()
+    {
+    }
+#pragma warning restore CS8618
 }

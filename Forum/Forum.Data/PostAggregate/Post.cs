@@ -12,7 +12,6 @@ namespace Forum.Data.PostAggregate;
 public sealed class Post : AggregateRoot<PostId, Guid>
 {
     private readonly List<Comment> _comments = new();
-
     public string Title { get; private set; }
     public string Content { get; private set; }
     public IReadOnlyList<Comment> Comments => _comments.AsReadOnly();
@@ -23,9 +22,14 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public UserId UserId { get; private set; }
     //public AuthorId AuthorId { get; private set; }
 
+#pragma warning disable CS8618
+    private Post()
+    {
+    }
+#pragma warning restore CS8618
 
     // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
-    public Post(
+    private Post(
         PostId postId,
         string title,
         string content,
@@ -45,7 +49,7 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         string content,
         UserId userId)
     {
-         // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
+        // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
         // enforce invariants later
         var post = new Post(
             PostId.CreateUnique(),

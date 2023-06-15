@@ -30,10 +30,10 @@ public class PostsController : ApiController
     public async Task<IActionResult> CreatePost(CreatePostRequest request, [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        string userId = _userIdProvider.GetUserId(token);
+        string idFromToken = _userIdProvider.GetUserId(token);
 
-        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultId)
-                ? resultId
+        ErrorOr<Guid> userIdResult = Guid.TryParse(idFromToken, out var userId)
+                ? userId
                 : Errors.Authentication.InvalidGuid;
 
         if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
@@ -77,15 +77,21 @@ public class PostsController : ApiController
     }
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {
-        return authorizationHeader?.Replace("Bearer ", string.Empty);
+        return authorizationHeader?.Replace("Bearer ", string.Empty)!;
     }
 
     [HttpPost]
     [Route("api/posts/{postId}/like")]
     public IActionResult LikePost(string postId)
     {
-        // Find the post by postId and perform the necessary logic to increment the like count
-        // Update the post in the data store
+        // var command = _mapper.Map<LikePostCommand>(postId);
+
+        // var likePostResult = await _mediator.Send(command);
+
+        // return likePostResult.Match(
+                       //post => Ok(
+                       //    StatusCode(statusCode: StatusCodes.Status204NoContent)),
+                       //errors => Problem(errors));
 
         return Ok(); // Return a 200 OK response indicating the like operation was successful
     }
@@ -98,16 +104,6 @@ public class PostsController : ApiController
         // Update the post in the data store
 
         return Ok(); // Return a 200 OK response indicating the dislike operation was successful
-    }
-
-    [HttpPost]
-    [Route("api/posts/{postId}/comment")]
-    public IActionResult CommentPost(string content, string authorId)
-    {
-        // Find the post by postId and perform the logic to map the comment to the post
-        // Update the post and also add the post in the User's post list
-
-        return Ok(); // Return 200 OK response, or any errors with ErrorOr
     }
 
     [HttpDelete("{postId:guid}")]

@@ -13,59 +13,38 @@ namespace Forum.Infrastructure.Persistence.Repositories
 {
     public class PostRepository : IPostRepository
     {
-        private static readonly List<Post> _posts = new();
-
+        private static List<Post> _posts = new List<Post>();
+        //private readonly ForumDbContext _dbContext;
+/*        public PostRepository(ForumDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }*/
 
         // the await Task.CompletedTask are placeholders until I implement the DB (just so it stops being annoying about it).
         public async Task AddAsync(Post post)
         {
-            await Task.CompletedTask;
             _posts.Add(post);
+
         }
 
         public async Task<Post> GetByIdAsync(PostId postId)
         {
-            return _posts.SingleOrDefault(post => post.Id == postId);
+            return _posts.SingleOrDefault(p => p.Id == postId);
         }
 
         public async Task<List<Post>> ListAsync(AuthorId authorId)
         {
-            await Task.CompletedTask;
-            return _posts.Where(post => post.UserId == authorId).ToList();
+            throw new NotImplementedException();
         }
 
         public async Task DeleteAsync(PostId postId)
         {
-            var postToRemove = _posts.SingleOrDefault(post => post.Id == postId);
-            if (postToRemove != null)
-            {
-                _posts.Remove(postToRemove);
-            }
-            await Task.CompletedTask;
+            
         }
 
-        public async Task<int> GetPostCountAsync()
+        public Task<int> GetPostCountAsync()
         {
-            await Task.CompletedTask;
-            return _posts.Count;
-        }
-
-        public async Task<List<Post>> GetMostRecentAsync()
-        {
-            await Task.CompletedTask;
-            return _posts
-                    .OrderByDescending(post => post.CreatedDateTime)
-                    .Take(10)
-                    .ToList();
-        }
-
-        public async Task<List<Post>> GetMostCommentedAsync()
-        {
-            await Task.CompletedTask;
-            return _posts
-                .OrderByDescending(post => post.Comments.Count)
-                .Take(10)
-                .ToList();
+            throw new NotImplementedException();
         }
     }
 }

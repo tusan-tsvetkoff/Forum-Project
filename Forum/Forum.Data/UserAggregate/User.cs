@@ -1,4 +1,5 @@
 ﻿using Forum.Data.Models;
+using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,8 @@ namespace Forum.Data.UserAggregate
 {
     public sealed class User : AggregateRoot<UserId, Guid>
     {
+        private readonly List<PostId> _postIds = new();
+        private readonly List<CommentId> _commentIds = new();
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Email { get; private set; }
@@ -17,6 +20,8 @@ namespace Forum.Data.UserAggregate
         public string Password { get; private set; } // Need to hash
         public string Country { get; private set; }
         public DateTime CreatedDate { get; private set; }
+        public IReadOnlyList<PostId> PostIds => _postIds.AsReadOnly();
+        public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
 
         public User(
             string firstName,
@@ -24,7 +29,7 @@ namespace Forum.Data.UserAggregate
             string email,
             string username,
             string password,
-            UserId? userId = null) 
+            UserId? userId = null)
             : base(id: userId ?? UserId.CreateUnique())
         {
             FirstName = firstName;

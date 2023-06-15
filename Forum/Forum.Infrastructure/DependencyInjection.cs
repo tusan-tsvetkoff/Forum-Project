@@ -2,9 +2,11 @@
 using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Application.Common.Interfaces.Services;
 using Forum.Infrastructure.Authentication;
+using Forum.Infrastructure.Persistence;
 using Forum.Infrastructure.Persistence.Repositories;
 using Forum.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -23,6 +25,14 @@ public static class DependencyInjection
         services.AddAuth(configuration);
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(
+        this IServiceCollection services)
+    {
+        services.AddDbContext<ForumDbContext>(options =>
+            options.UseSqlServer(""));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPostRepository, PostRepository>();
 

@@ -23,7 +23,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
+
         // 1. Checking if the email is unique in the system or not.
+
         if (_userRepository.GetUserByEmail(command.Email) is not null)
         {
             return Errors.User.DuplicateEmail;
@@ -38,6 +40,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
             username: command.Username,
             password: command.Password
             );
+
         _userRepository.Add(user);
 
         // Create JWT Token

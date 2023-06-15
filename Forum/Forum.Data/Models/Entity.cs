@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Forum.Data.Models
 {
     public abstract class Entity<TId> : IEquatable<Entity<TId>>
-        where TId : notnull
+        where TId : ValueObject
     {
         public TId Id { get; protected set; }
 
@@ -41,8 +41,10 @@ namespace Forum.Data.Models
             return !Equals(left, right);
         }
 
-
-
-
+#pragma warning disable CS8618
+        protected Entity()
+        {
+        }
+#pragma warning restore CS8618
     }
 }

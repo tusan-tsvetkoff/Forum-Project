@@ -14,8 +14,8 @@ public class PostMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<(CreatePostRequest Request, string userId), CreatePostCommand>()
-            .Map(dest => dest.UserId, srsc => srsc.userId)
+        config.NewConfig<(CreatePostRequest Request, Guid UserId), CreatePostCommand>()
+            .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
 
         config.NewConfig<string, ListPostsQuery>()
@@ -23,7 +23,6 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Guid, GetPostQuery>()
             .Map(dest => dest.PostId, src => src);
-
 
         config.NewConfig<(Guid PostId, Guid UserId), DeletePostCommand>()
             .Map(dest => dest.UserId, src => src.UserId)

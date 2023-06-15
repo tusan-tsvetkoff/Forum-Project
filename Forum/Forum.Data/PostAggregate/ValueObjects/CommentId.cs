@@ -13,10 +13,6 @@ public sealed class CommentId : EntityId<Guid>
     {
     }
 
-    public CommentId()
-    {
-    }
-
     public static CommentId CreateUnique()
     {
         return new CommentId(Guid.NewGuid());

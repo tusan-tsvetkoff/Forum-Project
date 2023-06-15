@@ -1,4 +1,7 @@
-﻿using Forum.Application.Users.Commands.UpdateCountry;
+﻿using ErrorOr;
+using Forum.Api.Common.Helpers;
+using Forum.Application.Users.Commands.UpdateCountry;
+using Forum.Application.Users.Commands.UpdateProfile;
 using Forum.Contracts.User;
 using Forum.Data.Common.Errors;
 using MapsterMapper;
@@ -12,30 +15,46 @@ namespace Forum.Api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
+        private readonly IUserIdProvider _userIdProvider;
 
-        public UsersApiController(IMapper mapper, IMediator mediator)
+        public UsersApiController(IMapper mapper, IMediator mediator, IUserIdProvider userIdProvider)
         {
             _mapper = mapper;
             _mediator = mediator;
+            _userIdProvider = userIdProvider;
         }
 
-        [HttpPut("{userId:guid}")]
-        public async Task<IActionResult> UpdateUser(UpdateUserRequest request)
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(
+            [FromHeader(Name = "Authorization")] string authorizationHeader,
+            [FromBody] UpdateProfileRequest request)
         {
-            var command = _mapper.Map<UpdateCountryCommand>(request);
+            string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
+            string idFromToken = _userIdProvider.GetUserId(token);
 
-            var updateResult = await _mediator.Send(command);
+            ErrorOr<Guid> userIdResult = Guid.TryParse(idFromToken, out var userId)
+                    ? userId
+                    : Errors.Authentication.InvalidGuid;
 
-            if (updateResult.IsError && updateResult.FirstError == Errors.User.NotFound)
+            if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
             {
                 return Problem(
-                    statusCode: StatusCodes.Status404NotFound,
-                    title: updateResult.FirstError.Description);
+                    statusCode: StatusCodes.Status415UnsupportedMediaType,
+                    title: userIdResult.FirstError.Description);
             }
 
-            return updateResult.Match(
-                    updateResult => Ok(_mapper.Map<UpdateUserResponse>(updateResult)),
-                    errors => Problem(errors));
+            var command = _mapper.Map<UpdateProfileCommand>((request, userId));
+
+            var result = await _mediator.Send(command);
+
+            return result.Match(
+                updated => NoContent(),
+                errors => Problem(errors));
+        }
+
+        private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
+        {
+            return authorizationHeader?.Replace("Bearer ", string.Empty)!;
         }
     }
 }

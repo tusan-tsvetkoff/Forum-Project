@@ -24,7 +24,6 @@ public class UpdateCountryCommandHandler : IRequestHandler<UpdateCountryCommand,
             return Errors.User.NotFound;
         }
 
-        user.UpdateCountry(request.Country);
 
         _userRepository.Update(user);
 

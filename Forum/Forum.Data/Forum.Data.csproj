@@ -6,6 +6,7 @@
 <ItemGroup>
   <Folder Include="Entities\" />
   <Folder Include="PostAggregate\Events\" />
+  <Folder Include="UserAggregate\Entities\" />
 </ItemGroup>
 
   <PropertyGroup>

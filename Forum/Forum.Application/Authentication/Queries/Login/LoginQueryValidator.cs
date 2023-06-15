@@ -9,10 +9,12 @@ namespace Forum.Application.Authentication.Queries.Login
 {
     public class LoginQueryValidator : AbstractValidator<LoginQuery>
     {
+
         public LoginQueryValidator()
         {
             RuleFor(x => x.Email).NotEmpty()
-                .EmailAddress();
+                .EmailAddress()
+                .WithMessage("Invalid email format.");
             RuleFor(x=> x.Password).NotEmpty();
         }
     }

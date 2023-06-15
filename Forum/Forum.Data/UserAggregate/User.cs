@@ -18,10 +18,12 @@ namespace Forum.Data.UserAggregate
         public string Email { get; private set; }
         public string Username { get; private set; }
         public string Password { get; private set; } // Need to hash
-        public string Country { get; private set; }
         public DateTime CreatedDate { get; private set; }
         public IReadOnlyList<PostId> PostIds => _postIds.AsReadOnly();
         public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
+
+        // Properties for profile page/update/
+        public string About { get; private set; }
 
         public User(
             string firstName,
@@ -29,6 +31,7 @@ namespace Forum.Data.UserAggregate
             string email,
             string username,
             string password,
+            DateTime createdDate,
             UserId? userId = null)
             : base(id: userId ?? UserId.CreateUnique())
         {
@@ -37,6 +40,7 @@ namespace Forum.Data.UserAggregate
             Email = email;
             Username = username;
             Password = password;
+            CreatedDate = createdDate;
         }
 
         public static User Create(
@@ -52,12 +56,41 @@ namespace Forum.Data.UserAggregate
                 lastName: lastName,
                 email: email,
                 username: username,
-                password: password);
+                password: password,
+                createdDate: DateTime.UtcNow);
         }
 
-        public void UpdateCountry(string country)
+        public void UpdateProfile(
+            string firstName,
+            string lastName,
+            string username,
+            string password,
+            string about)
         {
-            Country = country;
+            if(!string.IsNullOrWhiteSpace(firstName))
+            {
+                FirstName = firstName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(lastName))
+            {
+                LastName = lastName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                Username = username;
+            }
+
+            if (!string.IsNullOrWhiteSpace(password))
+            {
+                Password = password;
+            }
+
+            if (!string.IsNullOrWhiteSpace(about))
+            {
+                About = about;
+            }
         }
 
         public void UpdateFirstName(string firstName)

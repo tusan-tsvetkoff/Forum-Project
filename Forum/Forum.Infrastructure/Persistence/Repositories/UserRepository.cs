@@ -24,7 +24,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
 
         public void Update(User user)
         {
-            throw new NotImplementedException();
+            _users[_users.FindIndex(u => u.Id == user.Id)] = user;
         }
     }
 }

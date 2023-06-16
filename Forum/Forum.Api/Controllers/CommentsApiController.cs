@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Forum.Data.Common.Errors;
 using Forum.Application.Comments.Commands;
 using Mapster;
+using System.Security.Claims;
 
 namespace Forum.Api.Controllers;
 
@@ -30,6 +31,11 @@ public class CommentsApiController : ApiController
         [FromBody] CreateCommentRequest request,
         [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
+        // WHY DID I NOT KNOW ABOUT THIS UNTIL NOW?!
+        var userIdentity = User.Identity as ClaimsIdentity;
+        var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        // THIS TO BE DEPRECATED, ABOVE LINES REPLACE BOTH METHODS AND CLASS + CLEANLINESS
         var token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
         var userId = _userIdProvider.GetUserId(token);
 

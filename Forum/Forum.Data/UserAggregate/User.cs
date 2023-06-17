@@ -1,4 +1,5 @@
-﻿using Forum.Data.Models;
+﻿using Forum.Data.CommentAggregate.ValueObjects;
+using Forum.Data.Models;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
 
@@ -6,9 +7,6 @@ namespace Forum.Data.UserAggregate;
 
 public sealed class User : AggregateRoot<UserId, Guid>
 {
-    // TODO: Has to be removed from here, added to Author
-    private readonly List<PostId> _postIds = new();
-    private readonly List<CommentId> _commentIds = new();
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
     public string Email { get; private set; }
@@ -17,10 +15,6 @@ public sealed class User : AggregateRoot<UserId, Guid>
 
     // TODO: Has to be removed from here, added to Author
     public DateTime CreatedDate { get; private set; }
-
-    // TODO: Has to be removed from here, added to Author (for both)
-    public IReadOnlyList<PostId> PostIds => _postIds.AsReadOnly();
-    public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
 
     // TODO: Properties for profile page/update/ (possibly removed and added to Author)
     public string About { get; private set; }

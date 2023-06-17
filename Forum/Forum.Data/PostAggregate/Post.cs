@@ -1,11 +1,10 @@
 ﻿using ErrorOr;
 using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.CommentAggregate;
 using Forum.Data.Common.Errors;
 using Forum.Data.Models;
-using Forum.Data.PostAggregate.Entities;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
-using System.Net.Mime;
 
 namespace Forum.Data.PostAggregate;
 
@@ -19,7 +18,6 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public DateTime UpdatedDateTime { get; private set; }
     public Likes Likes { get; private set; }
     public Dislikes Dislikes { get; private set; }
-    //public UserId UserId { get; private set; }
     public AuthorId AuthorId { get; private set; }
 
 #pragma warning disable CS8618
@@ -28,7 +26,6 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     }
 #pragma warning restore CS8618
 
-    // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
     private Post(
         PostId postId,
         string title,
@@ -49,7 +46,6 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         string content,
         AuthorId authorId)
     {
-        // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
         // enforce invariants later
         var post = new Post(
             PostId.CreateUnique(),
@@ -61,26 +57,10 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         return post;
     }
 
-    public ErrorOr<Comment> AddComment(string content, UserId userId)
+    public ErrorOr<Success> AddComment(Comment comment)
     {
-        if (content.Length < 1)
-        {
-            return Errors.Post.TitleLength;
-        }
-        var comment = Comment.Create(userId, content);
         _comments.Add(comment);
-        return comment;
-    }
-
-    public ErrorOr<Updated> From(string newContent, CommentId commentId)
-    {
-        if (_comments.SingleOrDefault(c => c.Id == commentId) is not Comment comment)
-        {
-            return Errors.User.NotFound;
-        }
-        comment.Edit(newContent);
-
-        return Result.Updated;
+        return Result.Success;
     }
 
     public void IncrementLikes()

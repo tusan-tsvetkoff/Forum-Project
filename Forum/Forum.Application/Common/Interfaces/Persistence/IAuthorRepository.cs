@@ -12,4 +12,5 @@ public interface IAuthorRepository
     public Author Add(Author author);
     public Author? GetByAuthorId(string authorId);
     public Author? GetByUserId(Guid userId);
+    Author? GetByUsername(string username);
 }

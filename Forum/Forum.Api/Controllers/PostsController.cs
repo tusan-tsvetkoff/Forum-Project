@@ -67,15 +67,20 @@ public class PostsController : ApiController
     }
 
     [HttpGet()]
-    public async Task<IActionResult> ListPosts(string authorId)
+    public async Task<IActionResult> GetPosts(
+        [FromQuery(Name = "sort")]string? sort = "",
+        [FromQuery(Name = "username")] string? username = "",
+        [FromQuery(Name = "page")]int page = 1,
+        [FromQuery(Name = "pageSize")] int pageSize = 10,
+        [FromQuery(Name = "search")]string? search = "")
     {
-        var query = _mapper.Map<ListPostsQuery>(authorId);
+        var request = _mapper.Map<ListPostsRequest>((page, pageSize, search, sort, username));
+        var query = _mapper.Map<ListPostsQuery>(request);
+        var listPostsResult = await _mediator.Send(query);
 
-        var listPostsQuery = await _mediator.Send(query);
-
-        return listPostsQuery.Match(
-            posts => Ok(posts.Select(post => _mapper.Map<PostResponse>(post))),
-            errors => Problem(errors));
+        return listPostsResult.Match(
+                       posts => Ok(posts.Select(post => _mapper.Map<PostResponse>(post))),
+                       errors => Problem(errors));
     }
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {

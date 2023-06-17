@@ -1,31 +1,61 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Data.PostAggregate.Entities;
-using MediatR;
+using Forum.Data.AuthorAggregate;
+using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.CommentAggregate;
 using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate.ValueObjects;
-using Forum.Data.PostAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
+using MediatR;
 
 namespace Forum.Application.Comments.Commands;
 
 public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, ErrorOr<Comment>>
 {
     private readonly IPostRepository _postRepository;
+    private readonly IAuthorRepository _authorRepository;
+    private readonly IUserRepository _userRepository;
 
-    public CreateCommentCommandHandler(IPostRepository postRepository)
+    public CreateCommentCommandHandler(IPostRepository postRepository, IUserRepository userRepository, IAuthorRepository authorRepository)
     {
         _postRepository = postRepository;
+        _userRepository = userRepository;
+        _authorRepository = authorRepository;
     }
 
     public async Task<ErrorOr<Comment>> Handle(CreateCommentCommand command, CancellationToken cancellationToken)
     {
         var post = await _postRepository.GetByIdAsync(PostId.Create(command.PostId));
+
         if (post == null)
         {
             return Errors.Post.NotFound;
         }
-        var comment = post.AddComment(command.Content, UserId.Create(command.UserId));
+
+        // HAS TO BE A BETTER WAY
+        //Author author = null;
+        // Find user 
+        var userToAuthor = _userRepository.GetUserById(UserId.Create(command.AuthorId)); // should be userId but w/e
+        // Take care of potential new author
+        if (_authorRepository.GetByUserId(userToAuthor.Id.Value) is not Author author)
+        {
+            // Create author
+            author = Author.Create(
+            userToAuthor.FirstName,
+            userToAuthor.LastName,
+            userToAuthor.Username,
+            UserId.Create(command.AuthorId));
+
+            // Add author to db
+            _authorRepository.Add(author);
+        }
+
+        var comment = Comment.Create(
+            AuthorId.Create(author.Id.Value),
+            PostId.Create(command.PostId),
+            command.Content);
+
+        post.AddComment(comment);
 
         return comment;
     }

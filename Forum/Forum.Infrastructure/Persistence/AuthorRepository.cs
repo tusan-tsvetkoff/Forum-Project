@@ -1,10 +1,5 @@
 ﻿using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.AuthorAggregate;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Infrastructure.Persistence;
 
@@ -25,5 +20,10 @@ public class AuthorRepository : IAuthorRepository
     public Author? GetByUserId(Guid userId)
     {
         return _authors.SingleOrDefault(a => a.UserId.Value == userId);
+    }
+
+    public Author? GetByUsername(string username)
+    {
+        return _authors.SingleOrDefault(a => a.Username == username);
     }
 }

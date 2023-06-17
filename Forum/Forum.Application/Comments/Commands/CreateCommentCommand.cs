@@ -1,5 +1,5 @@
 ﻿using ErrorOr;
-using Forum.Data.PostAggregate.Entities;
+using Forum.Data.CommentAggregate;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,6 @@ namespace Forum.Application.Comments.Commands;
 
 public record CreateCommentCommand(
     string Content,
-    Guid UserId,
+    Guid AuthorId,
     Guid PostId) : IRequest<ErrorOr<Comment>>;
 

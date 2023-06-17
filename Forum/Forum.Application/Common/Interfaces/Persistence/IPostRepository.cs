@@ -1,4 +1,5 @@
-﻿using Forum.Data.AuthorAggregate.ValueObjects;
+﻿using ErrorOr;
+using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
@@ -16,6 +17,7 @@ namespace Forum.Application.Common.Interfaces.Persistence
         Task DeleteAsync(PostId postId);
         Task<Post> GetByIdAsync(PostId postId);
         Task<int> GetPostCountAsync();
+        Task<List<Post>> GetPostsAsync(string sort, string? username, int page, int pageSize, string search);
         Task<List<Post>> ListAsync(AuthorId authorId);
     }
 }

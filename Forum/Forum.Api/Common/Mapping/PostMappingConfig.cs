@@ -17,8 +17,21 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
 
-        config.NewConfig<string, ListPostsQuery>()
-            .MapWith(src => new ListPostsQuery(src));
+        // Ceate mapping for the list posts query
+        config.NewConfig<ListPostsRequest, ListPostsQuery>()
+            .Map(dest => dest.Page, src => src.Page)
+            .Map(dest => dest.PageSize, src => src.PageSize)
+            .Map(dest => dest.Search, src => src.Search)
+            .Map(dest => dest.Sort, src => src.Sort)
+            .Map(dest => dest.Username, src => src.Username);
+
+        // Create mapping for query params to list posts request
+        config.NewConfig<(int Page, int PageSize, string Search, string Sort, string Username), ListPostsRequest>()
+            .Map(dest => dest.Page, src => src.Page)
+            .Map(dest => dest.PageSize, src => src.PageSize)
+            .Map(dest => dest.Search, src => src.Search)
+            .Map(dest => dest.Sort, src => src.Sort)
+            .Map(dest => dest.Username, src => src.Username);
 
         config.NewConfig<Guid, GetPostQuery>()
             .Map(dest => dest.PostId, src => src);
@@ -29,7 +42,7 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.AuthorId, src => src.AuthorId.Value);
+            .Map(dest => dest.AuthorId, src => src.AuthorId.Value.ToString());
     }
 }
 

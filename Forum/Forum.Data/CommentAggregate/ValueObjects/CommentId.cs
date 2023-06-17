@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Forum.Data.PostAggregate.ValueObjects;
+namespace Forum.Data.CommentAggregate.ValueObjects;
 
-public sealed class CommentId : EntityId<Guid>
+public sealed class CommentId : AggregateRootId<Guid>
 {
     private CommentId(Guid value) : base(value)
     {
     }
-
+        
     public static CommentId CreateUnique()
     {
         return new CommentId(Guid.NewGuid());

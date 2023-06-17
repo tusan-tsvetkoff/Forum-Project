@@ -5,6 +5,7 @@
 </ItemGroup>
 <ItemGroup>
   <Folder Include="Entities\" />
+  <Folder Include="PostAggregate\Entities\" />
   <Folder Include="PostAggregate\Events\" />
   <Folder Include="UserAggregate\Entities\" />
 </ItemGroup>

@@ -4,7 +4,7 @@ namespace Forum.Contracts.Post;
 
 public record PostResponse(
      string Id,
-     string UserId,
+     string AuthorId,
      string Title,
      string Content,
      DateTime CreatedDateTime,

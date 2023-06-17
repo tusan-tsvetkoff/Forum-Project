@@ -17,9 +17,9 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return _users.SingleOrDefault(u => u.Email == email);
         }
 
-        public User GetUserById(UserId userId)
+        public User? GetUserById(UserId userId)
         {
-            return _users.SingleOrDefault(u => u.Id == userId);
+            return _users.SingleOrDefault(user => user.Id == userId);
         }
 
         public void Update(User user)

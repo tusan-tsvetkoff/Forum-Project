@@ -2,11 +2,6 @@
 using Forum.Data.Models;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Data.AuthorAggregate;
 
@@ -22,7 +17,6 @@ public sealed class Author : AggregateRoot<AuthorId, string>
     public IReadOnlyList<PostId> PostIds => _postIds.AsReadOnly();
     public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
     public DateTime CreatedDateTime { get; private set; }
-    public DateTime UpdatedDateTime { get; private set; }
 
     private Author(
         AuthorId authorId,
@@ -30,7 +24,7 @@ public sealed class Author : AggregateRoot<AuthorId, string>
         string lastName,
         string username,
         UserId userId)
-        : base(authorId ?? AuthorId.Create(userId))
+        : base(authorId ?? AuthorId.CreateUnique(userId))
     {
         FirstName = firstName;
         LastName = lastName;
@@ -46,20 +40,10 @@ public sealed class Author : AggregateRoot<AuthorId, string>
     {
         // TODO: enforce invariants
         return new Author(
-            AuthorId.Create(userId),
+            AuthorId.CreateUnique(userId),
             firstName,
             lastName,
             username,
             userId);
-    }
-
-    public void AddComment(CommentId commentId)
-    {
-        _commentIds.Add(commentId);
-    }
-
-    public void AddPost(PostId postId)
-    {
-        _postIds.Add(postId);
     }
 }

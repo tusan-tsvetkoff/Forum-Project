@@ -19,8 +19,8 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public DateTime UpdatedDateTime { get; private set; }
     public Likes Likes { get; private set; }
     public Dislikes Dislikes { get; private set; }
-    public UserId UserId { get; private set; }
-    //public AuthorId AuthorId { get; private set; }
+    //public UserId UserId { get; private set; }
+    public AuthorId AuthorId { get; private set; }
 
 #pragma warning disable CS8618
     private Post()
@@ -34,20 +34,20 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         string title,
         string content,
         DateTime createdDateTime,
-        UserId userId)
+        AuthorId authorId)
         : base(id: postId)
     {
         Title = title;
         Content = content;
         CreatedDateTime = createdDateTime;
-        UserId = userId;
+        AuthorId = authorId;
         //AuthorId = authorId;
     }
 
     public static Post Create(
         string title,
         string content,
-        UserId userId)
+        AuthorId authorId)
     {
         // REFACTORING: Replace UserId userId with AuthorId authorId later if fuck up
         // enforce invariants later
@@ -56,7 +56,7 @@ public sealed class Post : AggregateRoot<PostId, Guid>
             title,
             content,
             DateTime.UtcNow,
-            userId
+            authorId
             );
         return post;
     }

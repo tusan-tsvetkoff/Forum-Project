@@ -1,5 +1,6 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
+using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
@@ -24,7 +25,7 @@ public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, Error
     {
         var post = await _postRepository.GetByIdAsync(PostId.Create(command.PostId));
 
-        if (post.UserId != UserId.Create(command.UserId))
+        if (post.AuthorId != AuthorId.Create(UserId.Create(command.UserId).Value.ToString()))
         {
             return Errors.Authentication.UnauthorizedAction;
         }

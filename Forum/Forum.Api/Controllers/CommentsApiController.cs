@@ -35,11 +35,7 @@ public class CommentsApiController : ApiController
         var userIdentity = User.Identity as ClaimsIdentity;
         var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        // THIS TO BE DEPRECATED, ABOVE LINES REPLACE BOTH METHODS AND CLASS + CLEANLINESS
-        var token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        var userId = _userIdProvider.GetUserId(token);
-
-        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultUserId)
+        ErrorOr<Guid> userIdResult = Guid.TryParse(authId, out var resultUserId)
             ? resultUserId
             : Errors.Authentication.InvalidGuid;
 

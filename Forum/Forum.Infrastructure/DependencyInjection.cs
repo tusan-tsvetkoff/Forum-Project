@@ -35,6 +35,7 @@ public static class DependencyInjection
             options.UseSqlServer(""));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<IAuthorRepository, AuthorRepository>();
 
         return services;
     }

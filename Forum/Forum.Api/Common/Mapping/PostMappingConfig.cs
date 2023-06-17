@@ -4,7 +4,6 @@ using Forum.Application.Posts.Queries.GetPost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
-using Forum.Data.UserAggregate.ValueObjects;
 using Mapster;
 
 namespace Forum.Api.Common.Mapping;
@@ -30,7 +29,7 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.UserId, src => src.UserId.Value);
+            .Map(dest => dest.AuthorId, src => src.AuthorId.Value);
     }
 }
 

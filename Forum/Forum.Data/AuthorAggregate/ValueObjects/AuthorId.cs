@@ -9,13 +9,13 @@ public sealed class AuthorId : AggregateRootId<string>
     {
     }
 
-    public static AuthorId Create(UserId userId)
+    public static AuthorId CreateUnique(UserId userId)
     {
-        return new AuthorId($"Author_{userId.Value}");
+        return new AuthorId($"Author_{userId}");
     }
 
-    public static AuthorId Create(string hostId)
+    public static AuthorId Create(string authorId)
     {
-        return new AuthorId(hostId);
+        return new AuthorId(authorId);
     }
 }

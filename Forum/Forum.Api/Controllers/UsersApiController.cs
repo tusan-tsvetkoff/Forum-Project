@@ -1,6 +1,5 @@
 ﻿using ErrorOr;
 using Forum.Api.Common.Helpers;
-using Forum.Application.Users.Commands.UpdateCountry;
 using Forum.Application.Users.Commands.UpdateProfile;
 using Forum.Contracts.User;
 using Forum.Data.Common.Errors;

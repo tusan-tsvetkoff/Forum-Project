@@ -9,6 +9,7 @@ using Forum.Data.Common.Errors;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Forum.Api.Controllers;
 
@@ -27,12 +28,13 @@ public class PostsController : ApiController
     }
 
     [HttpPost("")]
-    public async Task<IActionResult> CreatePost(CreatePostRequest request, [FromHeader(Name = "Authorization")] string authorizationHeader)
+    public async Task<IActionResult> CreatePost(CreatePostRequest request)
     {
-        string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        string idFromToken = _userIdProvider.GetUserId(token);
+        // WHY DID I NOT KNOW ABOUT THIS UNTIL NOW?!
+        var userIdentity = User.Identity as ClaimsIdentity;
+        var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        ErrorOr<Guid> userIdResult = Guid.TryParse(idFromToken, out var userId)
+        ErrorOr<Guid> userIdResult = Guid.TryParse(authId, out var userId)
                 ? userId
                 : Errors.Authentication.InvalidGuid;
 
@@ -89,9 +91,9 @@ public class PostsController : ApiController
         // var likePostResult = await _mediator.Send(command);
 
         // return likePostResult.Match(
-                       //post => Ok(
-                       //    StatusCode(statusCode: StatusCodes.Status204NoContent)),
-                       //errors => Problem(errors));
+        //post => Ok(
+        //    StatusCode(statusCode: StatusCodes.Status204NoContent)),
+        //errors => Problem(errors));
 
         return Ok(); // Return a 200 OK response indicating the like operation was successful
     }

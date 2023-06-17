@@ -13,5 +13,5 @@ public interface IUserRepository
     User? GetUserByEmail(string email);
     void Add(User user);
     void Update(User user);
-    User GetUserById(UserId userId);
+    User? GetUserById(UserId userId);
 }

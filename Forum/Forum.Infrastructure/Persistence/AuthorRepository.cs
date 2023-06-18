@@ -6,6 +6,13 @@ namespace Forum.Infrastructure.Persistence;
 public class AuthorRepository : IAuthorRepository
 {
     private static readonly List<Author> _authors = new();
+
+    private readonly ForumDbContext _dbContext;
+
+    public AuthorRepository(ForumDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
     public Author Add(Author author)
     {
         _authors.Add(author);

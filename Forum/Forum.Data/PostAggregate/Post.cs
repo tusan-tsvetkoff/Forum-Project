@@ -1,19 +1,21 @@
 ﻿using ErrorOr;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
-using Forum.Data.Common.Errors;
+using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate.ValueObjects;
-using Forum.Data.UserAggregate.ValueObjects;
+using Forum.Data.TagAggregate.ValueObjects;
 
 namespace Forum.Data.PostAggregate;
 
 public sealed class Post : AggregateRoot<PostId, Guid>
 {
-    private readonly List<Comment> _comments = new();
+    private readonly List<CommentId> _commentIds = new();
+    private readonly List<TagId> _tagIds = new();
     public string Title { get; private set; }
     public string Content { get; private set; }
-    public IReadOnlyList<Comment> Comments => _comments.AsReadOnly();
+    public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
+    public IReadOnlyList<TagId> TagIds => _tagIds.AsReadOnly();
     public DateTime CreatedDateTime { get; private set; }
     public DateTime UpdatedDateTime { get; private set; }
     public Likes Likes { get; private set; }
@@ -32,13 +34,12 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         string content,
         DateTime createdDateTime,
         AuthorId authorId)
-        : base(id: postId)
+        : base(postId)
     {
         Title = title;
         Content = content;
         CreatedDateTime = createdDateTime;
         AuthorId = authorId;
-        //AuthorId = authorId;
     }
 
     public static Post Create(
@@ -59,7 +60,7 @@ public sealed class Post : AggregateRoot<PostId, Guid>
 
     public ErrorOr<Success> AddComment(Comment comment)
     {
-        _comments.Add(comment);
+        //_comments.Add(comment);
         return Result.Success;
     }
 

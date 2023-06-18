@@ -7,6 +7,12 @@ namespace Forum.Infrastructure.Persistence.Repositories
     public class UserRepository : IUserRepository
     {
         private static readonly List<User> _users = new();
+        private readonly ForumDbContext _dbContext;
+
+        public UserRepository(ForumDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
         public void Add(User user)
         {
             _users.Add(user);

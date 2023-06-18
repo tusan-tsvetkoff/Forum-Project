@@ -7,9 +7,9 @@ namespace Forum.Data.CommentAggregate;
 
 public sealed class Comment : AggregateRoot<CommentId, Guid>
 {
-    public AuthorId AuthorId { get; private set; } = null!;
-    public PostId PostId { get; private set; } = null!;
-    public string Content { get; private set; } = null!;
+    public AuthorId AuthorId { get; private set; } 
+    public PostId PostId { get; private set; } 
+    public string Content { get; private set; } 
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 

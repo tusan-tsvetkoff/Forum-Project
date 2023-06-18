@@ -12,7 +12,11 @@ public sealed class CommentId : AggregateRootId<Guid>
     private CommentId(Guid value) : base(value)
     {
     }
-        
+
+    private CommentId() : base(Guid.Empty)
+    {
+    }
+
     public static CommentId CreateUnique()
     {
         return new CommentId(Guid.NewGuid());

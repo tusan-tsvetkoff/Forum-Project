@@ -1,6 +1,4 @@
-﻿using Forum.Data.CommentAggregate.ValueObjects;
-using Forum.Data.Models;
-using Forum.Data.PostAggregate.ValueObjects;
+﻿using Forum.Data.Models;
 using Forum.Data.UserAggregate.ValueObjects;
 
 namespace Forum.Data.UserAggregate;
@@ -12,22 +10,18 @@ public sealed class User : AggregateRoot<UserId, Guid>
     public string Email { get; private set; }
     public string Username { get; private set; }
     public string Password { get; private set; } // Need to hash
-
-    // TODO: Has to be removed from here, added to Author
     public DateTime CreatedDate { get; private set; }
-
-    // TODO: Properties for profile page/update/ (possibly removed and added to Author)
     public string About { get; private set; }
 
-    public User(
+    private User(
         string firstName,
         string lastName,
         string email,
         string username,
         string password,
         DateTime createdDate,
-        UserId? userId = null)
-        : base(id: userId ?? UserId.CreateUnique())
+        UserId userId)
+        : base(userId)
     {
         FirstName = firstName;
         LastName = lastName;
@@ -46,6 +40,7 @@ public sealed class User : AggregateRoot<UserId, Guid>
         )
     {
         return new User(
+            userId: UserId.CreateUnique(),
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -86,4 +81,10 @@ public sealed class User : AggregateRoot<UserId, Guid>
             About = about;
         }
     }
+
+#pragma warning disable CS8618
+    private User()
+    {
+    }
+#pragma warning restore CS8618
 }

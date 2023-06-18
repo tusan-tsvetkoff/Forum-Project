@@ -1,10 +1,4 @@
-﻿using Forum.Data.Models;
-using Forum.Data.Models.Identities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Forum.Data.Models.Identities;
 
 namespace Forum.Data.UserAggregate.ValueObjects;
 
@@ -14,7 +8,7 @@ public sealed class UserId : AggregateRootId<Guid>
     {
     }
 
-    public UserId() : base (value: Guid.Empty)
+    private UserId() : base(Guid.Empty)
     {
     }
 

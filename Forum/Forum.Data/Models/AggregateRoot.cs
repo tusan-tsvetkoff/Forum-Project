@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Forum.Data.Models.Identities;
+﻿using Forum.Data.Models.Identities;
 
 namespace Forum.Data.Models;
 

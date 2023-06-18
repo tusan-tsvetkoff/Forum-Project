@@ -1,4 +1,7 @@
-﻿namespace Forum.Data.Models.Identities;
+﻿using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.UserAggregate.ValueObjects;
+
+namespace Forum.Data.Models.Identities;
 
 public abstract class EntityId<TId> : ValueObject
 {
@@ -17,7 +20,7 @@ public abstract class EntityId<TId> : ValueObject
     public override string? ToString() => Value?.ToString() ?? base.ToString();
 
 #pragma warning disable CS8618
-    protected EntityId()
+    private EntityId()
     {
     }
 #pragma warning restore CS8618

@@ -17,22 +17,22 @@ namespace Forum.Infrastructure.Persistence.Repositories
     public class PostRepository : IPostRepository
     {
         private static List<Post> _posts = new List<Post>();
-        //private readonly ForumDbContext _dbContext;
-/*        public PostRepository(ForumDbContext dbContext)
+        private readonly ForumDbContext _dbContext;
+        public PostRepository(ForumDbContext dbContext)
         {
             _dbContext = dbContext;
-        }*/
+        }
 
         // the await Task.CompletedTask are placeholders until I implement the DB (just so it stops being annoying about it).
         public async Task AddAsync(Post post)
         {
-            _posts.Add(post);
-
+            _dbContext.Add(post);
+            await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<Post> GetByIdAsync(PostId postId)
+        public async Task<Post?> GetByIdAsync(PostId postId)
         {
-            return _posts.SingleOrDefault(p => p.Id == postId);
+            return await _dbContext.Posts.FirstOrDefaultAsync(p => p.Id == postId);
         }
 
         public async Task<List<Post>> ListAsync(AuthorId authorId)
@@ -54,6 +54,8 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             await Task.CompletedTask;
             var postQuery = _posts.AsQueryable();
+
+
 
             if (!string.IsNullOrEmpty(authorId))
             {
@@ -81,7 +83,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
                     postQuery = postQuery.OrderBy(p => p.Likes.Value);
                     break;
                 case "mostcommented":
-                    postQuery = postQuery.OrderByDescending(p => p.Comments.Count);
+                    postQuery = postQuery.OrderByDescending(p => p.CommentIds.Count);
                     break;
             }
 

@@ -19,13 +19,18 @@ public sealed class Author : AggregateRoot<AuthorId, string>
     public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
     public DateTime CreatedDateTime { get; private set; }
 
+#pragma warning disable CS8618
+    private Author()
+    {
+    }
+#pragma warning restore CS8618
     private Author(
         AuthorId authorId,
         string firstName,
         string lastName,
         string username,
         UserId userId)
-        : base(authorId ?? AuthorId.CreateUnique(userId))
+        : base(authorId ?? AuthorId.CreateUnique(userId)) // should just be id: authorId, if im creating it in the factory method
     {
         FirstName = firstName;
         LastName = lastName;

@@ -12,11 +12,13 @@ namespace Forum.Application.Authentication.Queries.Login
     {
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IUserRepository _userRepository;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public LoginQueryHandler(IJwtTokenGenerator jwtTokenGenerator, IUserRepository userRepository)
+        public LoginQueryHandler(IJwtTokenGenerator jwtTokenGenerator, IUserRepository userRepository, IPasswordHasher passwordHasher)
         {
             _jwtTokenGenerator = jwtTokenGenerator;
             _userRepository = userRepository;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<ErrorOr<AuthenticationResult>> Handle(LoginQuery querry, CancellationToken cancellationToken)
@@ -27,9 +29,10 @@ namespace Forum.Application.Authentication.Queries.Login
             {
                 return Errors.Authentication.InvalidCredentials;
             }
+            // 1.1 De-hash password
 
             // 2. Password is correct?
-            if (user.Password != querry.Password)
+            if (!_passwordHasher.VerifyPassword(querry.Password, user.Password))
             {
                 return Errors.Authentication.InvalidCredentials;
             }

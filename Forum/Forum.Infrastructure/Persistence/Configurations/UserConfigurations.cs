@@ -38,6 +38,10 @@ namespace Forum.Infrastructure.Persistence.Configurations
 
             builder.Property(u => u.Username)
                 .HasMaxLength(32);
+
+            builder.Property(u => u.About)
+                .IsRequired(false)
+                .HasMaxLength(256);
         }
     }
 }

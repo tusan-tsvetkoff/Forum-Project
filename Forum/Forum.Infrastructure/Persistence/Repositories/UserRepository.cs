@@ -15,17 +15,18 @@ namespace Forum.Infrastructure.Persistence.Repositories
         }
         public void Add(User user)
         {
-            _users.Add(user);
+            _dbContext.Add(user);
+            _dbContext.SaveChanges();
         }
 
         public User? GetUserByEmail(string email)
         {
-            return _users.SingleOrDefault(u => u.Email == email);
+            return _dbContext.Users.FirstOrDefault(u => u.Email == email);
         }
 
         public User? GetUserById(UserId userId)
         {
-            return _users.SingleOrDefault(user => user.Id == userId);
+            return _dbContext.Users.FirstOrDefault(user => user.Id == userId);
         }
 
         public void Update(User user)

@@ -9,7 +9,7 @@ public sealed class User : AggregateRoot<UserId, Guid>
     public string LastName { get; private set; }
     public string Email { get; private set; }
     public string Username { get; private set; }
-    public string Password { get; private set; } // Need to hash
+    public string Password { get; private set; } // <- Hashed (but too lazy to change the name)
     public DateTime CreatedDate { get; private set; }
     public string About { get; private set; }
 

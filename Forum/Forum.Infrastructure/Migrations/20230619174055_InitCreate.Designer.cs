@@ -4,6 +4,7 @@ using Forum.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    partial class ForumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230619174055_InitCreate")]
+    partial class InitCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -257,9 +260,7 @@ namespace Forum.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("Value")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
-                                .HasDefaultValue(0)
                                 .HasColumnName("Dislikes");
 
                             b1.HasKey("PostId");
@@ -276,9 +277,7 @@ namespace Forum.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("Value")
-                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
-                                .HasDefaultValue(0)
                                 .HasColumnName("Likes");
 
                             b1.HasKey("PostId");
@@ -300,6 +299,9 @@ namespace Forum.Infrastructure.Migrations
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uniqueidentifier");
 
+                            b1.Property<Guid?>("TagId")
+                                .HasColumnType("uniqueidentifier");
+
                             b1.Property<Guid>("Value")
                                 .HasColumnType("uniqueidentifier")
                                 .HasColumnName("TagId");
@@ -308,10 +310,21 @@ namespace Forum.Infrastructure.Migrations
 
                             b1.HasIndex("PostId");
 
-                            b1.ToTable("PostTagIds", (string)null);
+                            b1.HasIndex("TagId");
+
+                            b1.ToTable("PostTagIds", null, t =>
+                                {
+                                    t.Property("TagId")
+                                        .HasColumnName("TagId1");
+                                });
 
                             b1.WithOwner()
                                 .HasForeignKey("PostId");
+
+                            b1.HasOne("Forum.Data.TagAggregate.Tag", null)
+                                .WithMany()
+                                .HasForeignKey("TagId")
+                                .OnDelete(DeleteBehavior.Restrict);
                         });
 
                     b.Navigation("CommentIds");

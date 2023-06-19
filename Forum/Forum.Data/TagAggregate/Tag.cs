@@ -1,4 +1,5 @@
 ﻿using Forum.Data.Models;
+using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.TagAggregate.ValueObjects;
 using System;

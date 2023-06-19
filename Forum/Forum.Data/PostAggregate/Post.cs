@@ -3,7 +3,9 @@ using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
 using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.Models;
+using Forum.Data.PostAggregate.Events;
 using Forum.Data.PostAggregate.ValueObjects;
+using Forum.Data.TagAggregate;
 using Forum.Data.TagAggregate.ValueObjects;
 
 namespace Forum.Data.PostAggregate;
@@ -11,7 +13,7 @@ namespace Forum.Data.PostAggregate;
 public sealed class Post : AggregateRoot<PostId, Guid>
 {
     private readonly List<CommentId> _commentIds = new();
-    private readonly List<TagId> _tagIds = new();
+    private readonly List<TagId> _tagIds= new();
     public string Title { get; private set; }
     public string Content { get; private set; }
     public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
@@ -53,8 +55,10 @@ public sealed class Post : AggregateRoot<PostId, Guid>
             title,
             content,
             DateTime.UtcNow,
-            authorId
-            );
+            authorId);
+
+        post.AddDomainEvent(new PostCreated(post));
+
         return post;
     }
 

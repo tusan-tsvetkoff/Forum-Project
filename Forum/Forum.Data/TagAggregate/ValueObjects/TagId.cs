@@ -8,9 +8,9 @@ public sealed class TagId : AggregateRootId<Guid>
     {
     }
 
-    private TagId() : base(Guid.Empty)
+/*    private TagId() : base(Guid.Empty)
     {
-    }
+    }*/
 
     public static TagId CreateUnique()
     {

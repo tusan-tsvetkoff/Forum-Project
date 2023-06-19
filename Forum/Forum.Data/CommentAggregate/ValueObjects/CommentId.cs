@@ -13,9 +13,9 @@ public sealed class CommentId : AggregateRootId<Guid>
     {
     }
 
-    private CommentId() : base(Guid.Empty)
+/*    private CommentId() : base(Guid.Empty)
     {
-    }
+    }*/
 
     public static CommentId CreateUnique()
     {

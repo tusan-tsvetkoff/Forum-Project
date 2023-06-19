@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Forum.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -112,6 +112,26 @@ namespace Forum.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AuthorPostIds",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AuthorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AuthorPostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuthorPostIds", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AuthorPostIds_Authors_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Authors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PostCommentIds",
                 columns: table => new
                 {
@@ -131,15 +151,57 @@ namespace Forum.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PostTagIds",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TagId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PostTagIds", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PostTagIds_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostTagIds_Tags_TagId1",
+                        column: x => x.TagId1,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuthorCommentIds_AuthorId",
                 table: "AuthorCommentIds",
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AuthorPostIds_AuthorId",
+                table: "AuthorPostIds",
+                column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PostCommentIds_PostId",
                 table: "PostCommentIds",
                 column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostTagIds_PostId",
+                table: "PostTagIds",
+                column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostTagIds_TagId1",
+                table: "PostTagIds",
+                column: "TagId1");
         }
 
         /// <inheritdoc />
@@ -149,13 +211,16 @@ namespace Forum.Infrastructure.Migrations
                 name: "AuthorCommentIds");
 
             migrationBuilder.DropTable(
+                name: "AuthorPostIds");
+
+            migrationBuilder.DropTable(
                 name: "Comments");
 
             migrationBuilder.DropTable(
                 name: "PostCommentIds");
 
             migrationBuilder.DropTable(
-                name: "Tags");
+                name: "PostTagIds");
 
             migrationBuilder.DropTable(
                 name: "Users");
@@ -165,6 +230,9 @@ namespace Forum.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "Tags");
         }
     }
 }

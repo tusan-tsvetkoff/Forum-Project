@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230618235049_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20230619210931_ModifyingPostTags2")]
+    partial class ModifyingPostTags2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -196,7 +196,35 @@ namespace Forum.Infrastructure.Migrations
                                 .HasForeignKey("AuthorId");
                         });
 
+                    b.OwnsMany("Forum.Data.PostAggregate.ValueObjects.PostId", "PostIds", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<string>("AuthorId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<Guid>("Value")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("AuthorPostId");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("AuthorId");
+
+                            b1.ToTable("AuthorPostIds", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("AuthorId");
+                        });
+
                     b.Navigation("CommentIds");
+
+                    b.Navigation("PostIds");
                 });
 
             modelBuilder.Entity("Forum.Data.PostAggregate.Post", b =>
@@ -260,6 +288,31 @@ namespace Forum.Infrastructure.Migrations
                                 .HasForeignKey("PostId");
                         });
 
+                    b.OwnsMany("Forum.Data.TagAggregate.ValueObjects.TagId", "TagIds", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("PostId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("Value")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("TagId");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("PostId");
+
+                            b1.ToTable("PostTagIds", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("PostId");
+                        });
+
                     b.Navigation("CommentIds");
 
                     b.Navigation("Dislikes")
@@ -267,6 +320,8 @@ namespace Forum.Infrastructure.Migrations
 
                     b.Navigation("Likes")
                         .IsRequired();
+
+                    b.Navigation("TagIds");
                 });
 #pragma warning restore 612, 618
         }

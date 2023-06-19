@@ -3,12 +3,14 @@ using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Application.Common.Interfaces.Services;
 using Forum.Infrastructure.Authentication;
 using Forum.Infrastructure.Persistence;
+using Forum.Infrastructure.Persistence.Interceptors;
 using Forum.Infrastructure.Persistence.Repositories;
 using Forum.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -22,6 +24,7 @@ public static class DependencyInjection
         this IServiceCollection services,
         ConfigurationManager configuration)
     {
+
         services.AddAuth(configuration)
             .AddPersistence();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
@@ -33,7 +36,8 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddDbContext<ForumDbContext>(options =>
-            options.UseSqlServer("Server=localhost;Database=MysteryForumGuy;Trusted_Connection=True;TrustServerCertificate=true"));
+            options.UseSqlServer("Server=localhost;Database=MysteryForum;Trusted_Connection=True;TrustServerCertificate=true"));
+        services.AddScoped<PublishDomainEventsInterceptor>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IAuthorRepository, AuthorRepository>();

@@ -1,7 +1,6 @@
 using Forum.Api;
 using Forum.Application;
 using Forum.Infrastructure;
-
 var builder = WebApplication.CreateBuilder(args);
 {
     builder.Services

@@ -2,8 +2,10 @@
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.TagAggregate;
+using Forum.Data.TagAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace Forum.Infrastructure.Persistence.Configurations;
 
@@ -18,13 +20,24 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         ConfigurePostTagsTable(builder);
     }
 
-     // Fuck this
+    // Fuck this
     private static void ConfigurePostTagsTable(EntityTypeBuilder<Post> builder)
     {
-        builder.
-         HasMany(p => p.TagIds)
-         .WithMany()
-         .UsingEntity(ptid => ptid.ToTable("PostTagIds"));
+        builder.OwnsMany(p => p.TagIds, tb =>
+        {
+            tb.ToTable("PostTagIds");
+
+            tb.WithOwner().HasForeignKey("PostId");
+
+            tb.HasKey("Id");
+
+            tb.Property(t => t.Value)
+                .HasColumnName("TagId")
+                .ValueGeneratedNever();
+        });
+        builder.Metadata.FindNavigation(nameof(Post.TagIds))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+        // This is throwing an exception 
     }
 
     // Jesus Fucking Christ.
@@ -55,7 +68,7 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
 
         builder.Property(p => p.Id)
             .ValueGeneratedNever()
-            .HasConversion(id => id.Value, 
+            .HasConversion(id => id.Value,
             value => PostId.Create(value));
 
         builder.Property(p => p.Title)
@@ -69,8 +82,6 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         builder.Property(p => p.CreatedDateTime)
             .IsRequired();
 
-        builder.Property(p => p.UpdatedDateTime);
-
         builder.Property(p => p.AuthorId)
             .ValueGeneratedNever()
             .HasConversion(id => id.Value,
@@ -82,6 +93,7 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         builder.OwnsOne(p => p.Likes, lb =>
         {
             lb.Property(l => l.Value)
+              .HasDefaultValue(0)
               .HasColumnName("Likes")
               .HasColumnType("int");
         });
@@ -92,6 +104,7 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         builder.OwnsOne(p => p.Dislikes, db =>
         {
             db.Property(d => d.Value)
+              .HasDefaultValue(0)
               .HasColumnName("Dislikes")
               .HasColumnType("int");
         });

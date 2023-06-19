@@ -8,9 +8,9 @@ public sealed class UserId : AggregateRootId<Guid>
     {
     }
 
-    private UserId() : base(Guid.Empty)
+   /* private UserId() : base(Guid.Empty)
     {
-    }
+    }*/
 
     public static UserId CreateUnique()
     {

@@ -9,9 +9,9 @@ public sealed class AuthorId : AggregateRootId<string>
     {
     }
 
-    private AuthorId() : base(string.Empty)
+/*    private AuthorId() : base(string.Empty)
     {
-    }
+    }*/
 
     public static AuthorId CreateUnique(UserId userId)
     {

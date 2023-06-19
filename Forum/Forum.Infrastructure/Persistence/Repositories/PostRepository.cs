@@ -55,8 +55,6 @@ namespace Forum.Infrastructure.Persistence.Repositories
             await Task.CompletedTask;
             var postQuery = _posts.AsQueryable();
 
-
-
             if (!string.IsNullOrEmpty(authorId))
             {
                 postQuery = postQuery.Where(p => p.AuthorId.Value == AuthorId.Create(authorId).Value);

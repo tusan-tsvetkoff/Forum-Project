@@ -9,8 +9,9 @@ namespace Forum.Data.Models
     public abstract class Entity<TId> : IEquatable<Entity<TId>>
         where TId : ValueObject
     {
+        private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
         public TId Id { get; protected set; }
-
+        public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
         protected Entity(TId id)
         {
             Id = id;
@@ -39,6 +40,16 @@ namespace Forum.Data.Models
         public static bool operator !=(Entity<TId> left, Entity<TId> right)
         {
             return !Equals(left, right);
+        }
+
+        public void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        public void ClearDomainEvents()
+        {
+            _domainEvents.Clear();
         }
 
 #pragma warning disable CS8618

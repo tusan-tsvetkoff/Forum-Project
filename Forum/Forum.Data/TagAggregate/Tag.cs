@@ -1,4 +1,5 @@
 ﻿using Forum.Data.Models;
+using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.TagAggregate.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -12,11 +13,6 @@ public sealed class Tag : AggregateRoot<TagId, Guid>
 {
     public string Name { get; private set; }
 
-#pragma warning disable CS8618
-    private Tag()
-    {
-    }
-#pragma warning restore CS8618
     private Tag(TagId tagId, string name) : base(tagId)
     {
         Name = name;
@@ -27,4 +23,9 @@ public sealed class Tag : AggregateRoot<TagId, Guid>
         var tag = new Tag(TagId.CreateUnique(), name);
         return tag;
     }
+#pragma warning disable CS8618
+    private Tag()
+    {
+    }
+#pragma warning restore CS8618
 }

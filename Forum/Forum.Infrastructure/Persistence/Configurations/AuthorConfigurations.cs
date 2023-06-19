@@ -1,5 +1,6 @@
 ﻿using Forum.Data.AuthorAggregate;
 using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.UserAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -76,7 +77,7 @@ public class AuthorConfigurations : IEntityTypeConfiguration<Author>
             .IsRequired();
 
         builder.Property(a => a.UserId)
-            .ValueGeneratedNever()
-            .HasConversion(id => id.Value, value => UserId.Create(value));
+            .HasConversion(id => id.Value,
+            value => UserId.Create(value));
     }
 }

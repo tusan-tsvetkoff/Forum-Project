@@ -33,7 +33,7 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddDbContext<ForumDbContext>(options =>
-            options.UseSqlServer(string.Empty));
+            options.UseSqlServer("Server=localhost;Database=MysteryForumGuy;Trusted_Connection=True;TrustServerCertificate=true"));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IAuthorRepository, AuthorRepository>();

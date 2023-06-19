@@ -1,6 +1,7 @@
 ﻿using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
+using Forum.Data.TagAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,24 +14,25 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         ConfigurePostTable(builder);
         ConfigureLikesValueObject(builder);
         ConfigureDislikesValueObject(builder);
-        ConfigurePostCommentsTalbe(builder);
+        ConfigurePostCommentsTable(builder);
         ConfigurePostTagsTable(builder);
     }
 
      // Fuck this
     private static void ConfigurePostTagsTable(EntityTypeBuilder<Post> builder)
     {
-        builder.HasMany(p => p.TagIds)
-               .WithMany()
-               .UsingEntity(j => j.ToTable("PostTag"));
+        builder.
+         HasMany(p => p.TagIds)
+         .WithMany()
+         .UsingEntity(ptid => ptid.ToTable("PostTagIds"));
     }
 
     // Jesus Fucking Christ.
-    private static void ConfigurePostCommentsTalbe(EntityTypeBuilder<Post> builder)
+    private static void ConfigurePostCommentsTable(EntityTypeBuilder<Post> builder)
     {
         builder.OwnsMany(p => p.CommentIds, cb =>
         {
-            cb.ToTable("PostComments");
+            cb.ToTable("PostCommentIds");
 
             cb.WithOwner().HasForeignKey("PostId");
 
@@ -40,6 +42,7 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
                 .HasColumnName("CommentId")
                 .ValueGeneratedNever();
         });
+
         builder.Metadata.FindNavigation(nameof(Post.CommentIds))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
@@ -52,13 +55,15 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
 
         builder.Property(p => p.Id)
             .ValueGeneratedNever()
-            .HasConversion(id => id.Value, value => PostId.Create(value));
+            .HasConversion(id => id.Value, 
+            value => PostId.Create(value));
 
         builder.Property(p => p.Title)
-            .HasMaxLength(255)
+            .HasMaxLength(64)
             .IsRequired();
 
         builder.Property(p => p.Content)
+            .HasMaxLength(8192)
             .IsRequired();
 
         builder.Property(p => p.CreatedDateTime)
@@ -68,7 +73,8 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
 
         builder.Property(p => p.AuthorId)
             .ValueGeneratedNever()
-            .HasConversion(id => id.Value, value => AuthorId.Create(value));
+            .HasConversion(id => id.Value,
+            value => AuthorId.Create(value));
     }
 
     private static void ConfigureLikesValueObject(EntityTypeBuilder<Post> builder)

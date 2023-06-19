@@ -9,7 +9,7 @@ public sealed class AuthorId : AggregateRootId<string>
     {
     }
 
-    private AuthorId() : base(String.Empty)
+    private AuthorId() : base(string.Empty)
     {
     }
 

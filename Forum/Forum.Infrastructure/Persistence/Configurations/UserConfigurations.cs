@@ -1,4 +1,5 @@
-﻿using Forum.Data.UserAggregate;
+﻿using Forum.Data.AuthorAggregate;
+using Forum.Data.UserAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -34,7 +35,6 @@ namespace Forum.Infrastructure.Persistence.Configurations
             builder.Property(u => u.Password);
 
             builder.Property(u => u.CreatedDate);
-
 
             builder.Property(u => u.Username)
                 .HasMaxLength(32);

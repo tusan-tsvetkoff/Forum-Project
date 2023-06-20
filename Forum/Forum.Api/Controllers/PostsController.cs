@@ -114,7 +114,9 @@ public class PostsController : ApiController
     }
 
     [HttpDelete("{postId:guid}")]
-    public async Task<IActionResult> DeletePost([FromRoute] Guid postId, [FromHeader(Name = "Authorization")] string authorizationHeader)
+    public async Task<IActionResult> DeletePost(
+        [FromRoute] Guid postId,
+        [FromHeader(Name = "Authorization")] string authorizationHeader)
     {
         string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
         string userId = _userIdProvider.GetUserId(token);

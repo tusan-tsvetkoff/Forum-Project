@@ -1,14 +1,7 @@
 ﻿using ErrorOr;
 using FluentValidation;
-using FluentValidation.Results;
-using Forum.Application.Authentication.Commands.Register;
-using Forum.Application.Authentication.Common;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.WebSockets;
 
 namespace Forum.Application.Common.Behaviors
 {

@@ -10,8 +10,9 @@ namespace Forum.Application.Common.Interfaces.Persistence;
 
 public interface IUserRepository
 {
-    User? GetUserByEmail(string email);
+    Task<User?> GetUserByEmail(string email);
     Task AddAsync(User user);
     void Update(User user);
     Task<User?> GetUserByIdAsync(UserId userId);
+    Task DeleteAsync(User user);
 }

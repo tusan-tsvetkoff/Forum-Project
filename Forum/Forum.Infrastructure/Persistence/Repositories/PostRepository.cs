@@ -23,7 +23,6 @@ namespace Forum.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        // the await Task.CompletedTask are placeholders until I implement the DB (just so it stops being annoying about it).
         public async Task AddAsync(Post post)
         {
             _dbContext.Add(post);

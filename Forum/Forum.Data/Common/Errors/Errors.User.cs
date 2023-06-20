@@ -26,5 +26,9 @@ public static partial class Errors
         public static Error PasswordLength => Error.Validation(
             description: "Password is too short. \nPlease enter a password with at least 15 symbols.",
             code: "User.PasswordLength");
+
+        public static Error DeleteFailed => Error.Unexpected(
+                description: "User could not be deleted.",
+                code: "User.DeleteFailed");
     }
 }

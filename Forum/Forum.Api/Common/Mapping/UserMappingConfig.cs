@@ -1,4 +1,5 @@
-﻿using Forum.Application.Users.Commands.UpdateProfile;
+﻿using Forum.Application.Users.Commands.Delete;
+using Forum.Application.Users.Commands.UpdateProfile;
 using Forum.Contracts.User;
 using Mapster;
 
@@ -11,5 +12,8 @@ public class UserMappingConfig : IRegister
         config.NewConfig<(UpdateProfileRequest Request, Guid UserId), UpdateProfileCommand>()
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
+
+        config.NewConfig<Guid, DeleteUserCommand>()
+            .Map(dest => dest.UserId, src => src);
     }
 }

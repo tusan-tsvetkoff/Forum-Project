@@ -25,11 +25,10 @@ namespace Forum.Application.Authentication.Queries.Login
         {
             await Task.CompletedTask;
             // 1. Validate existance
-            if (_userRepository.GetUserByEmail(querry.Email) is not User user)
+            if (await _userRepository.GetUserByEmail(querry.Email) is not User user)
             {
                 return Errors.Authentication.InvalidCredentials;
             }
-            // 1.1 De-hash password
 
             // 2. Password is correct?
             if (!_passwordHasher.VerifyPassword(querry.Password, user.Password))

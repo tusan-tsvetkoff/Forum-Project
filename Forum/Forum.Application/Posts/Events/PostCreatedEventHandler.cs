@@ -3,11 +3,6 @@ using Forum.Data.AuthorAggregate;
 using Forum.Data.PostAggregate.Events;
 using Forum.Data.PostAggregate.ValueObjects;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Application.Posts.Events;
 
@@ -23,8 +18,9 @@ public class PostCreatedEventHandler : INotificationHandler<PostCreated>
     public async Task Handle(PostCreated postCreatedEvent, CancellationToken cancellationToken)
     {
        // Gotta add some way to check the actual existance of the author.. fuck
-       if(await _authorRepository.GetByAuthorIdAsync(postCreatedEvent.Post.AuthorId) is not Author author)
+       if(await _authorRepository.GetByAuthorIdAsync(postCreatedEvent.Post.AuthorId)! is not Author author)
         {
+            // TODO: Utilise ErrorOr some how. We don't want exceptions, I think.
             throw new InvalidOperationException($"Post has invalid author id (author id: {postCreatedEvent.Post.AuthorId}, post id: {postCreatedEvent.Post.Id}");
         }
 

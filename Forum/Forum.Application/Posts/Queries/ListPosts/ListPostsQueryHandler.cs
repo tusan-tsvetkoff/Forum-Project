@@ -35,7 +35,7 @@ namespace Forum.Application.Posts.Queries.ListPosts
             }
             // Check if request.Sort is valid within the SortBy enum
             // Also, lowercase/uppercase doesn't matter
-
+            // This will probably be moved to a validator
             if (!Enum.GetNames(typeof(SortBy))
                 .Any(x => x
                 .ToString()

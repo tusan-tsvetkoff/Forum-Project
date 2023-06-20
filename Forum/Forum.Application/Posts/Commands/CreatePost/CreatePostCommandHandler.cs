@@ -45,6 +45,6 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
 
         await _postRepository.AddAsync(post);
 
-        return post; // TODO: Event handler will publish PostCreatedEvent and add the post to the author's list of posts
+        return post;
     }
 }

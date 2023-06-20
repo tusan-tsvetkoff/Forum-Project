@@ -19,7 +19,7 @@ public class UpdateCountryCommandHandler : IRequestHandler<UpdateCountryCommand,
     public async Task<ErrorOr<UserUpdateResult>> Handle(UpdateCountryCommand request, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        if (_userRepository.GetUserById(request.UserId) is not User user)
+        if (await _userRepository.GetUserByIdAsync(request.UserId) is not User user)
         {
             return Errors.User.NotFound;
         }

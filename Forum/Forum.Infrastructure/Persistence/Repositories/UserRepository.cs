@@ -1,6 +1,7 @@
 ﻿using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.UserAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Infrastructure.Persistence.Repositories
 {
@@ -13,10 +14,10 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public void Add(User user)
+        public async Task AddAsync(User user)
         {
             _dbContext.Add(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
         }
 
         public User? GetUserByEmail(string email)
@@ -24,9 +25,9 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return _dbContext.Users.FirstOrDefault(u => u.Email == email);
         }
 
-        public User? GetUserById(UserId userId)
+        public async Task<User?> GetUserByIdAsync(UserId userId)
         {
-            return _dbContext.Users.FirstOrDefault(user => user.Id == userId);
+            return await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == userId);
         }
 
         public void Update(User user)

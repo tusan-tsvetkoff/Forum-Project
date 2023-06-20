@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Forum.Data.Models
 {
-    public abstract class Entity<TId> : IEquatable<Entity<TId>>
+    public abstract class Entity<TId> : IEquatable<Entity<TId>>, IHasDomainEvents
         where TId : ValueObject
     {
         private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();

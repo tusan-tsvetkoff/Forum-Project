@@ -5,6 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Forum.Data.PostAggregate.Events;
+namespace Forum.Data.UserAggregate.Events;
 
-public record PostCreated(Post Post) : IDomainEvent;
+public record UserCreated(User User) : IDomainEvent;

@@ -11,7 +11,7 @@ namespace Forum.Application.Common.Interfaces.Persistence;
 public interface IUserRepository
 {
     User? GetUserByEmail(string email);
-    void Add(User user);
+    Task AddAsync(User user);
     void Update(User user);
-    User? GetUserById(UserId userId);
+    Task<User?> GetUserByIdAsync(UserId userId);
 }

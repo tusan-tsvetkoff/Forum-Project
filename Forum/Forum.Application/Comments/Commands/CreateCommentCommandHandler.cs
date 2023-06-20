@@ -35,9 +35,9 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         // HAS TO BE A BETTER WAY
         //Author author = null;
         // Find user 
-        var userToAuthor = _userRepository.GetUserById(UserId.Create(command.AuthorId)); // should be userId but w/e
+        var userToAuthor = await _userRepository.GetUserByIdAsync(UserId.Create(command.AuthorId)); // should be userId but w/e
         // Take care of potential new author
-        if (_authorRepository.GetByUserId(userToAuthor.Id.Value) is not Author author)
+        if (await _authorRepository.GetByUserIdAsync(UserId.Create(userToAuthor.Id.Value)) is not Author author)
         {
             // Create author
             author = Author.Create(
@@ -45,9 +45,6 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
             userToAuthor.LastName,
             userToAuthor.Username,
             UserId.Create(command.AuthorId));
-
-            // Add author to db
-            _authorRepository.Add(author);
         }
 
         var comment = Comment.Create(

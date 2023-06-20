@@ -43,8 +43,6 @@ namespace Forum.Api.Common.Errors
             return problemDetails;
         }
 
-
-
         public override ValidationProblemDetails CreateValidationProblemDetails(
             HttpContext httpContext,
             ModelStateDictionary modelStateDictionary,

@@ -1,16 +1,14 @@
 ﻿using Forum.Data.AuthorAggregate;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.UserAggregate.ValueObjects;
 
 namespace Forum.Application.Common.Interfaces.Persistence;
 
 public interface IAuthorRepository
 {
-    public Author Add(Author author);
-    public Author? GetByAuthorId(string authorId);
-    public Author? GetByUserId(Guid userId);
+    Task AddАsync(Author author);
+    Task<Author?>? GetByAuthorIdAsync(AuthorId authorId);
+    Task<Author?> GetByUserIdAsync(UserId userId);
     Author? GetByUsername(string username);
+    Task UpdateAsync(Author author);
 }

@@ -1,10 +1,10 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Data.AuthorAggregate;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
 using MediatR;
+using Forum.Data.Common.Errors;
 
 namespace Forum.Application.Posts.Commands.CreatePost;
 
@@ -23,32 +23,25 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
 
     public async Task<ErrorOr<Post>> Handle(CreatePostCommand command, CancellationToken cancellationToken)
     {
-        // Get user who'll become the author of the post
-        var userToAuthor = _userRepository.GetUserById(UserId.Create(command.UserId));
-        // Assuming the user ALWAYS exists, because the user is authenticated before this command is called
-        // TODO: Add error handling for when the user doesn't exist
-        // (though this should never happen, because the user is authenticated before this command is called)
-
-        // TODO: Create an author db, and check if author doesn't already exist, if he does, get him DONE
-        if (_authorRepository.GetByUserId(userToAuthor.Id.Value) is not Author author)
+         // Get the author profile of the user
+         var userToAuthor = _userRepository.GetUserByIdAsync(UserId.Create(command.UserId));
+         
+        // Check if the user exists (still not sure if this should be done here or in the controller)
+        /*if (!userToAuthor.IsCompletedSuccessfully)
         {
-            // Create author
-            author = Author.Create(
-            userToAuthor.FirstName,
-            userToAuthor.LastName,
-            userToAuthor.Username,
-            UserId.Create(command.UserId));
+            return Errors.User.NotFound;
+        }*/
 
-            // Add author to db
-            _authorRepository.Add(author);
-        }
+        // Get the author profile of the user
+        var author = _authorRepository.GetByUserIdAsync(UserId.Create(userToAuthor.Result!.Id.Value));
+        // Shouldn't have to check author existance here, since it should be created when the user is created
+        await Console.Out.WriteLineAsync($"AuthorId: {author.Result.Id.Value}");
 
-
-        // Add author to post
+        // Create the post with the author's ID
         var post = Post.Create(
             command.Content,
             command.Title,
-            AuthorId.Create(author.Id.Value));
+            AuthorId.Create(author.Result.Id.Value));
 
         await _postRepository.AddAsync(post);
 

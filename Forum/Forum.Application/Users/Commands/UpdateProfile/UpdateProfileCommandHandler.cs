@@ -16,7 +16,7 @@ namespace Forum.Application.Users.Commands.UpdateProfile
         }
         public async Task<ErrorOr<Updated>> Handle(UpdateProfileCommand command, CancellationToken cancellationToken)
         {
-            if (_userRepository.GetUserById(UserId.Create(command.UserId)) is not User user)
+            if (await _userRepository.GetUserByIdAsync(UserId.Create(command.UserId)) is not User user)
             {
                 return Error.NotFound("User not found");
             }

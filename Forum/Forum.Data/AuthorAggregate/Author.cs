@@ -52,4 +52,9 @@ public sealed class Author : AggregateRoot<AuthorId, string>
             username,
             userId);
     }
+
+    public void AddPostId(PostId postId)
+    {
+        _postIds.Add(postId);
+    }
 }

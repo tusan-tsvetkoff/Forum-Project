@@ -1,4 +1,5 @@
 ﻿using Forum.Data.Models;
+using Forum.Data.UserAggregate.Events;
 using Forum.Data.UserAggregate.ValueObjects;
 
 namespace Forum.Data.UserAggregate;
@@ -39,7 +40,7 @@ public sealed class User : AggregateRoot<UserId, Guid>
         string password
         )
     {
-        return new User(
+        var user = new User(
             userId: UserId.CreateUnique(),
             firstName: firstName,
             lastName: lastName,
@@ -47,6 +48,10 @@ public sealed class User : AggregateRoot<UserId, Guid>
             username: username,
             password: password,
             createdDate: DateTime.UtcNow);
+
+        user.AddDomainEvent(new UserCreated(user));
+
+        return user;
     }
 
     public void UpdateProfile(

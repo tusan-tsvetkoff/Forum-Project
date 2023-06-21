@@ -12,7 +12,6 @@ public class TagConfigurations : IEntityTypeConfiguration<Tag>
         ConfigureTagsTable(builder);
     }
 
-
     private static void ConfigureTagsTable(EntityTypeBuilder<Tag> builder)
     {
         builder.ToTable("Tags");

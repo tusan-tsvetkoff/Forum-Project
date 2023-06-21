@@ -3,7 +3,6 @@ using Forum.Application.Authentication.Common;
 using Forum.Application.Authentication.Queries.Login;
 using Forum.Contracts.Authentication;
 using Mapster;
-using Microsoft.AspNetCore.Routing.Constraints;
 
 namespace Forum.Api.Common.Mapping;
 

@@ -16,11 +16,13 @@ public class AuthenticationController : ApiController
 {
     private readonly ISender _mediator;
     private readonly IMapper _mapper;
+    private readonly LinkGenerator _linkGenerator;
 
-    public AuthenticationController(ISender mediator, IMapper mapper)
+    public AuthenticationController(ISender mediator, IMapper mapper, LinkGenerator linkGenerator)
     {
         _mediator = mediator;
         _mapper = mapper;
+        _linkGenerator = linkGenerator;
     }
 
     [HttpPost("register")]
@@ -30,8 +32,17 @@ public class AuthenticationController : ApiController
 
         var authResult = await _mediator.Send(command);
 
+/*        var location = _linkGenerator.GetPathByAddress<RouteValuesAddress>(
+            HttpContext,
+            values =>
+            {
+                values.Controller = "Authentication";
+                values.UserId = authResult.Value.User.Id.Value;
+            });*/
+            
+
         return authResult.Match(
-            authResult => Ok(_mapper.Map<AuthenticationResponse>(authResult)),
+            authResult => Created(nameof(Register), _mapper.Map<AuthenticationResponse>(authResult)),
             errors => Problem(errors));
     }
 

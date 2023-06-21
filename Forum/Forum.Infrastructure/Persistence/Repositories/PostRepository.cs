@@ -51,12 +51,11 @@ namespace Forum.Infrastructure.Persistence.Repositories
 
         public async Task<List<Post>> GetPostsAsync(string sort, string? authorId, int page, int pageSize, string search)
         {
-            await Task.CompletedTask;
-            var postQuery = _posts.AsQueryable();
+            var postQuery = _dbContext.Posts.AsQueryable();
 
             if (!string.IsNullOrEmpty(authorId))
             {
-                postQuery = postQuery.Where(p => p.AuthorId.Value == AuthorId.Create(authorId).Value);
+                postQuery = postQuery.Where(p => p.AuthorId == AuthorId.Create(authorId));
             }
 
             if (!string.IsNullOrEmpty(search))

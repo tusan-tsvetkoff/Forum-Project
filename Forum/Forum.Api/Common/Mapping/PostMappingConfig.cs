@@ -25,6 +25,17 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.Sort, src => src.Sort)
             .Map(dest => dest.Username, src => src.Username);
 
+        // Create mapping for the get posts query (most commented)
+        config.NewConfig<GetMostCommentedPublicRequest, ListPostsQuery>()
+            .Map(dest => dest.Sort, src => src.MostCommented)
+            .Map(dest => dest.Page, src => src.PageCount)
+            .Map(dest =>dest.PageSize, src => src.PageSize);
+
+        config.NewConfig<GetMostRecentPublicRequest, ListPostsQuery>()
+            .Map(dest => dest.Sort, src => src.MostRecent)
+            .Map(dest => dest.Page, src => src.PageCount)
+            .Map(dest => dest.PageSize, src => src.PageSize);
+
         // Create mapping for query params to list posts request
         config.NewConfig<(int Page, int PageSize, string Search, string Sort, string Username), ListPostsRequest>()
             .Map(dest => dest.Page, src => src.Page)

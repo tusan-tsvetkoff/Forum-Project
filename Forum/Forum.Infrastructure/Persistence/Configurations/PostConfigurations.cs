@@ -34,10 +34,10 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
             tb.Property(t => t.Value)
                 .HasColumnName("TagId")
                 .ValueGeneratedNever();
+
         });
         builder.Metadata.FindNavigation(nameof(Post.TagIds))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
-        // This is throwing an exception 
     }
 
     // Jesus Fucking Christ.

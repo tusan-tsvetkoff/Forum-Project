@@ -1,14 +1,9 @@
 ﻿using Forum.Data.AuthorAggregate;
-using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
-using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate;
-using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.TagAggregate;
-using Forum.Data.TagAggregate.ValueObjects;
 using Forum.Data.UserAggregate;
-using Forum.Data.UserAggregate.ValueObjects;
 using Forum.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 

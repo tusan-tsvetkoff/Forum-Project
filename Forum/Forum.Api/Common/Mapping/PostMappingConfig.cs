@@ -17,14 +17,6 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
 
-        // Ceate mapping for the list posts query
-        config.NewConfig<ListPostsRequest, ListPostsQuery>()
-            .Map(dest => dest.Page, src => src.Page)
-            .Map(dest => dest.PageSize, src => src.PageSize)
-            .Map(dest => dest.Search, src => src.Search)
-            .Map(dest => dest.Sort, src => src.Sort)
-            .Map(dest => dest.Username, src => src.Username);
-
         // Create mapping for the get posts query (most commented)
         config.NewConfig<GetMostCommentedPublicRequest, ListPostsQuery>()
             .Map(dest => dest.Sort, src => src.MostCommented)
@@ -37,11 +29,12 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.PageSize, src => src.PageSize);
 
         // Create mapping for query params to list posts request
-        config.NewConfig<(int Page, int PageSize, string Search, string Sort, string Username), ListPostsRequest>()
+        config.NewConfig<GetPostsQueryParams, GetPostsQuery>()
             .Map(dest => dest.Page, src => src.Page)
             .Map(dest => dest.PageSize, src => src.PageSize)
-            .Map(dest => dest.Search, src => src.Search)
-            .Map(dest => dest.Sort, src => src.Sort)
+            .Map(dest => dest.SearchTerm, src => src.SearchTerm)
+            .Map(dest => dest.SortColumn, src => src.SortColumn)
+            .Map(dest => dest.SortOrder, src => src.SortOrder)
             .Map(dest => dest.Username, src => src.Username);
 
         config.NewConfig<Guid, GetPostQuery>()

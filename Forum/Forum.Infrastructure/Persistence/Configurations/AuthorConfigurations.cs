@@ -14,6 +14,14 @@ public class AuthorConfigurations : IEntityTypeConfiguration<Author>
         ConfigureAuthorsTable(builder);
         ConfigureAuthorPostsTable(builder);
         ConfigureAuthorCommentsTable(builder);
+        ConfigureAuthorIndexes(builder);
+    }
+
+    private static void ConfigureAuthorIndexes(EntityTypeBuilder<Author> builder)
+    {
+        builder.HasIndex(a => a.Username)
+            .IsUnique()
+            .HasDatabaseName("IX_Author_Username");
     }
 
     private static void ConfigureAuthorCommentsTable(EntityTypeBuilder<Author> builder)

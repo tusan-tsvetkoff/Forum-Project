@@ -9,6 +9,6 @@ public interface IAuthorRepository
     Task AddАsync(Author author);
     Task<Author?>? GetByAuthorIdAsync(AuthorId authorId);
     Task<Author?> GetByUserIdAsync(UserId userId);
-    Author? GetByUsername(string username);
+    Task<Author?> GetByUsernameAsync(string username);
     Task UpdateAsync(Author author);
 }

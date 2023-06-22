@@ -1,11 +1,8 @@
 ﻿using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
-using Forum.Data.TagAggregate;
-using Forum.Data.TagAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Reflection.Emit;
 
 namespace Forum.Infrastructure.Persistence.Configurations;
 
@@ -18,6 +15,13 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         ConfigureDislikesValueObject(builder);
         ConfigurePostCommentsTable(builder);
         ConfigurePostTagsTable(builder);
+        ConfigurePostIndexes(builder);
+    }
+
+    private static void ConfigurePostIndexes(EntityTypeBuilder<Post> builder)
+    {
+        builder.HasIndex(p => p.Title)
+            .HasDatabaseName("IX_Title");
     }
 
     // Fuck this

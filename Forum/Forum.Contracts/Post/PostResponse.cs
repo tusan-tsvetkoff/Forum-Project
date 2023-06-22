@@ -1,4 +1,5 @@
 ﻿using Forum.Contracts.Comment;
+using Forum.Contracts.Common;
 
 namespace Forum.Contracts.Post;
 
@@ -18,3 +19,11 @@ public record Likes(
 
 public record Dislikes(
     int Value);
+
+public record PostResponseList(
+    List<PostResponse> Posts,
+       int TotalPosts);
+
+public record PostResponseListNew(
+    List<PostResponse> Posts,
+    PageInfo PageInfo);

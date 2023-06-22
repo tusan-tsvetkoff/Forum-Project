@@ -11,6 +11,23 @@ namespace Forum.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<User> builder)
         {
             ConfigureUsersTable(builder);
+            ConfigureUserIndexes(builder);
+        }
+
+        private static void ConfigureUserIndexes(EntityTypeBuilder<User> builder)
+        {
+            builder.HasIndex(u => u.Email)
+                .IsUnique()
+                .HasDatabaseName("IX_Email");
+
+            builder.HasIndex(u => u.Username)
+                .IsUnique()
+                .HasDatabaseName("IX_Username");
+
+            // Might not be needed/working.
+            /*builder.HasIndex(u => u.Id)
+                .IsUnique()
+                .HasDatabaseName("IX_Id");*/
         }
 
         private static void ConfigureUsersTable(EntityTypeBuilder<User> builder)

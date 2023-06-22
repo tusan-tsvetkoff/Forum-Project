@@ -10,6 +10,14 @@ public class TagConfigurations : IEntityTypeConfiguration<Tag>
     public void Configure(EntityTypeBuilder<Tag> builder)
     {
         ConfigureTagsTable(builder);
+        ConfigureTagsIndex(builder);
+    }
+
+    private void ConfigureTagsIndex(EntityTypeBuilder<Tag> builder)
+    {
+        builder.HasIndex(tag => tag.Name)
+            .IsUnique() // This will be interesting.
+            .HasDatabaseName("IX_Name");
     }
 
     private static void ConfigureTagsTable(EntityTypeBuilder<Tag> builder)

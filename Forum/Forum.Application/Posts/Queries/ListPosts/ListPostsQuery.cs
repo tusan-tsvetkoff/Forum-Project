@@ -9,4 +9,4 @@ public record ListPostsQuery(
     string Username,
     int Page,
     int PageSize,
-    string Search) : IRequest<ErrorOr<List<Post>>>;
+    string Search) : IRequest<ErrorOr<(List<Post>, int TotalPosts)>>;

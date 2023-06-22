@@ -12,6 +12,13 @@ public class CommentConfigurations : IEntityTypeConfiguration<Comment>
     public void Configure(EntityTypeBuilder<Comment> builder)
     {
         ConfigureCommentsTable(builder);
+        ConfigureCommentIndex(builder);
+    }
+
+    private static void ConfigureCommentIndex(EntityTypeBuilder<Comment> builder)
+    {
+        builder.HasIndex(c => c.Content)
+               .HasDatabaseName("IX_Content");
     }
 
     private static void ConfigureCommentsTable(EntityTypeBuilder<Comment> builder)

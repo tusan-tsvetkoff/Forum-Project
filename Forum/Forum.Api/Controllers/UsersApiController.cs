@@ -2,6 +2,7 @@
 using Forum.Api.Common.Helpers;
 using Forum.Application.Users.Commands.Delete;
 using Forum.Application.Users.Commands.UpdateProfile;
+using Forum.Application.Users.Queries;
 using Forum.Contracts.User;
 using Forum.Data.Common.Errors;
 using MapsterMapper;
@@ -11,7 +12,7 @@ using System.Security.Claims;
 
 namespace Forum.Api.Controllers
 {
-    [Route("api/profiles")]
+    [Route("api/users")]
     public class UsersApiController : ApiController
     {
         private readonly IMapper _mapper;
@@ -25,7 +26,7 @@ namespace Forum.Api.Controllers
             _userIdProvider = userIdProvider;
         }
 
-        [HttpPut("profile")]
+        [HttpPut("{userId:guid}")]
         public async Task<IActionResult> UpdateProfile(
             [FromHeader(Name = "Authorization")] string authorizationHeader,
             [FromBody] UpdateProfileRequest request)
@@ -71,7 +72,7 @@ namespace Forum.Api.Controllers
                 title: userIdResult.FirstError.Description);
             }
 
-            if(userId != guidResult)
+            if (userId != guidResult)
             {
                 return Problem(
                     statusCode: StatusCodes.Status401Unauthorized,
@@ -86,6 +87,30 @@ namespace Forum.Api.Controllers
             return result.Match(
                 deleted => NoContent(),
                 errors => Problem(errors));
+        }
+
+
+        /// <summary>
+        /// This method is an HTTP GET endpoint that retrieves a paginated list of users based on the provided query parameters.
+        /// </summary>
+        /// <param name="queryParams">The parameters by which to sort and filter the results.</param>
+        /// <returns>A list of users, with pagination, based on the query parameters.</returns>
+        [HttpGet()]
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] GetUserQueryParams queryParams)
+        {
+            var searchQuery = _mapper.Map<GetUsersQuery>(queryParams);
+
+            var result = await _mediator.Send(searchQuery);
+
+            return result.Match(
+                   users =>
+                   {
+                       var userResponseList = users.Item1.Select(u => _mapper.Map<UserResponse>(u)).ToList();
+                       var resultTuple = new UserResponseList(Users: userResponseList,PageInfo: users.Item2);
+                       return Ok(resultTuple);
+                   },
+                   errors => Problem());
         }
 
         private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)

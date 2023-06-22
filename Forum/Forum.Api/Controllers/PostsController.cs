@@ -9,6 +9,7 @@ using Forum.Data.Common.Errors;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Quic;
 using System.Security.Claims;
 
 namespace Forum.Api.Controllers;
@@ -68,19 +69,19 @@ public class PostsController : ApiController
 
     [HttpGet()]
     public async Task<IActionResult> GetPosts(
-        [FromQuery(Name = "sort")]string? sort = "",
-        [FromQuery(Name = "username")] string? username = "",
-        [FromQuery(Name = "page")]int page = 1,
-        [FromQuery(Name = "pageSize")] int pageSize = 10,
-        [FromQuery(Name = "search")]string? search = "")
+        [FromQuery] GetPostsQueryParams queryParams)
     {
-        var request = _mapper.Map<ListPostsRequest>((page, pageSize, search, sort, username));
-        var query = _mapper.Map<ListPostsQuery>(request);
-        var listPostsResult = await _mediator.Send(query);
+        var request = _mapper.Map<GetPostsQuery>(queryParams);
+        var listPostsResult = await _mediator.Send(request);
 
         return listPostsResult.Match(
-                       posts => Ok(posts.Select(post => _mapper.Map<PostResponse>(post))),
-                       errors => Problem(errors));
+               posts =>
+               {
+                   var postResponses = posts.Item1.Select(post => _mapper.Map<PostResponse>(post)).ToList();
+                   var postResponseList = new PostResponseListNew(Posts: postResponses, PageInfo: posts.Item2);
+                   return Ok(postResponseList);
+               },
+               errors => Problem());
     }
     private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
     {

@@ -15,9 +15,14 @@ namespace Forum.Application.Common.Interfaces.Persistence
     {
         Task AddAsync(Post post);
         Task DeleteAsync(PostId postId);
+        Task<(List<Post>, int postCount)> GetAllPostsAsync(string? sortBy,
+            string? searchTerm,
+            AuthorId? authorId,
+            int pageCount,
+            int pageSize);
         Task<Post?> GetByIdAsync(PostId postId);
         Task<int> GetPostCountAsync();
-        Task<List<Post>> GetPostsAsync(string sort, string? username, int page, int pageSize, string search);
+        IQueryable<Post> GetPosts();
         Task<List<Post>> ListAsync(AuthorId authorId);
     }
 }

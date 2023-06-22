@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Forum.Contracts.Post;
-
-public record ListPostsRequest(
-    string Sort,
-    string Username,
+namespace Forum.Contracts.Common;
+public record PageInfo(
     int Page,
     int PageSize,
-    string Search);
+    int TotalCount,
+    bool HasNextPage,
+    bool HasPreviousPage);

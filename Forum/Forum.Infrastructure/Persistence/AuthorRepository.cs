@@ -34,9 +34,9 @@ public class AuthorRepository : IAuthorRepository
         return await _dbContext.Author.FirstOrDefaultAsync(a => a.UserId == userId);
     }
 
-    public Author? GetByUsername(string username)
+    public async Task<Author?> GetByUsernameAsync(string username)
     {
-        return _authors.SingleOrDefault(a => a.Username == username);
+        return await _dbContext.Author.FirstOrDefaultAsync(a => a.Username == username);
     }
 
     public async Task UpdateAsync(Author author)

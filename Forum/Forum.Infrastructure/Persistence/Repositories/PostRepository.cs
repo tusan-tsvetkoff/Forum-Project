@@ -16,7 +16,6 @@ namespace Forum.Infrastructure.Persistence.Repositories
 {
     public class PostRepository : IPostRepository
     {
-        private static List<Post> _posts = new List<Post>();
         private readonly ForumDbContext _dbContext;
         public PostRepository(ForumDbContext dbContext)
         {
@@ -43,51 +42,55 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             
         }
+        public IQueryable<Post> GetPosts()
+        {
+            return _dbContext.Posts.AsQueryable();
+        }
+
+        public async Task<(List<Post>, int postCount)> GetAllPostsAsync(
+            string? sortBy,
+            string? searchTerm,
+            AuthorId? authorId,
+            int pageCount,
+            int pageSize)
+        {
+            var query = _dbContext.Posts.AsQueryable();
+
+
+            if(authorId is not null)
+            {
+                query = query.Where(p => p.AuthorId == authorId);
+            }
+
+            if(!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(p => p.Title.Contains(searchTerm) || p.Content.Contains(searchTerm));
+            }
+
+            int postCount = await query.CountAsync();
+
+            var sortedQuery = sortBy switch
+            {
+                "newest" => query.OrderByDescending(p => p.CreatedDateTime),
+                "oldest" => query.OrderBy(p => p.CreatedDateTime),
+                "mostpopular" => query.OrderByDescending(p => p.Likes.Value),
+                "leastpopular" => query.OrderBy(p => p.Likes.Value),
+                "mostcommented" => query.OrderByDescending(p => p.CommentIds.Count),
+                _ => query
+            };
+
+            var paginatedQuery = sortedQuery
+                .Skip((pageCount - 1) * pageSize)
+                .Take(pageSize);
+
+            var posts = await paginatedQuery.ToListAsync();
+
+            return (posts, postCount);
+        }
 
         public Task<int> GetPostCountAsync()
         {
             throw new NotImplementedException();
-        }
-
-        public async Task<List<Post>> GetPostsAsync(string sort, string? authorId, int page, int pageSize, string search)
-        {
-            var postQuery = _dbContext.Posts.AsQueryable();
-
-            if (!string.IsNullOrEmpty(authorId))
-            {
-                postQuery = postQuery.Where(p => p.AuthorId == AuthorId.Create(authorId));
-            }
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                postQuery = postQuery.Where(p => p.Title.Contains(search) || p.Content.Contains(search));
-            }
-
-            // TODO: Add support for multiple sort parameters at once
-            switch (sort)
-            {
-                case "newest":
-                    postQuery = postQuery.OrderByDescending(p => p.CreatedDateTime);
-                    break;
-                case "oldest":
-                    postQuery = postQuery.OrderBy(p => p.CreatedDateTime);
-                    break;
-                case "mostpopular":
-                    postQuery = postQuery.OrderByDescending(p => p.Likes.Value);
-                    break;
-                case "leastpopular":
-                    postQuery = postQuery.OrderBy(p => p.Likes.Value);
-                    break;
-                case "mostcommented":
-                    postQuery = postQuery.OrderByDescending(p => p.CommentIds.Count);
-                    break;
-            }
-
-            int skipCount = (page - 1) * pageSize;
-
-            postQuery = postQuery.Skip(skipCount)
-                                 .Take(pageSize);
-            return postQuery.ToList();
         }
     }
 }

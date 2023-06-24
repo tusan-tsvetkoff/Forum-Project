@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Forum.Application.Common.Interfaces.Persistence;
 using System.Runtime.Serialization;
 
 namespace Forum.Application.Authentication.Commands.Register;
@@ -21,15 +22,15 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 
     private const string PasswordRegexPattern = @"^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.*[A-Z])(?=.*[a-z]).*$";
     private const string PasswordRequirementsErrorMessage = "Password must contain at least one number, one special symbol, one uppercase letter, and one lowercase letter.";
-    public RegisterCommandValidator()
+    public RegisterCommandValidator(IUserRepository userRepository)
     {
         RuleFor(x => x.FirstName)
             .NotEmpty()
             .Length(MinNameLength, MaxNameLength)
             .WithMessage(string.Format(NameLengthErrorMessage, MinNameLength, MaxNameLength))
             .Matches(NameRegexPattern)
-            .WithMessage(NameRequirementsErrorMessage); 
-        
+            .WithMessage(NameRequirementsErrorMessage);
+
         RuleFor(x => x.LastName)
             .NotEmpty()
             .Length(MinNameLength, MaxNameLength)
@@ -45,6 +46,13 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress();
+
+        RuleFor(x => x.Email)
+            .MustAsync(async (email, cancellationToken) =>
+            {
+                return await userRepository.IsEmailUniqueAsync(email);
+            })
+            .WithMessage("Email is already in use.");
 
         RuleFor(x => x.Password)
             .NotEmpty()

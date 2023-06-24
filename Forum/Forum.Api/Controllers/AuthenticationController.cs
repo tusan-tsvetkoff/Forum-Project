@@ -18,7 +18,10 @@ public class AuthenticationController : ApiController
     private readonly IMapper _mapper;
     private readonly LinkGenerator _linkGenerator;
 
-    public AuthenticationController(ISender mediator, IMapper mapper, LinkGenerator linkGenerator)
+    public AuthenticationController(
+        ISender mediator,
+        IMapper mapper,
+        LinkGenerator linkGenerator)
     {
         _mediator = mediator;
         _mapper = mapper;
@@ -31,15 +34,6 @@ public class AuthenticationController : ApiController
         var command = _mapper.Map<RegisterCommand>(request);
 
         var authResult = await _mediator.Send(command);
-
-/*        var location = _linkGenerator.GetPathByAddress<RouteValuesAddress>(
-            HttpContext,
-            values =>
-            {
-                values.Controller = "Authentication";
-                values.UserId = authResult.Value.User.Id.Value;
-            });*/
-            
 
         return authResult.Match(
             authResult => Created(nameof(Register), _mapper.Map<AuthenticationResponse>(authResult)),

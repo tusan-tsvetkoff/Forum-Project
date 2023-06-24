@@ -1,6 +1,5 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Data.AuthorAggregate;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
 using Forum.Data.Common.Errors;
@@ -10,50 +9,43 @@ using MediatR;
 
 namespace Forum.Application.Comments.Commands;
 
-public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, ErrorOr<Comment>>
+public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, ErrorOr<(Comment, string AuthorUsername)>>
 {
     private readonly IPostRepository _postRepository;
     private readonly IAuthorRepository _authorRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly ICommentRepository _commentRepository;
 
-    public CreateCommentCommandHandler(IPostRepository postRepository, IUserRepository userRepository, IAuthorRepository authorRepository)
+    public CreateCommentCommandHandler(IPostRepository postRepository, IAuthorRepository authorRepository, ICommentRepository commentRepository)
     {
         _postRepository = postRepository;
-        _userRepository = userRepository;
         _authorRepository = authorRepository;
+        _commentRepository = commentRepository;
     }
 
-    public async Task<ErrorOr<Comment>> Handle(CreateCommentCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<(Comment, string AuthorUsername)>> Handle(CreateCommentCommand command, CancellationToken cancellationToken)
     {
-        var post = await _postRepository.GetByIdAsync(PostId.Create(command.PostId));
-
-        if (post == null)
+        // 1. Find the post
+        if(!await _postRepository.PostExistsAsync(PostId.Create(command.PostId)))
         {
             return Errors.Post.NotFound;
         }
 
-        // HAS TO BE A BETTER WAY
-        //Author author = null;
-        // Find user 
-        var userToAuthor = await _userRepository.GetUserByIdAsync(UserId.Create(command.AuthorId)); // should be userId but w/e
-        // Take care of potential new author
-        if (await _authorRepository.GetByUserIdAsync(UserId.Create(userToAuthor.Id.Value)) is not Author author)
+        // 2. Find the author for the response + post comment creation.
+        var author = await _authorRepository.GetByUserIdAsync(UserId.Create(command.AuthorId));
+        if(author is null)
         {
-            // Create author
-            author = Author.Create(
-            userToAuthor.FirstName,
-            userToAuthor.LastName,
-            userToAuthor.Username,
-            UserId.Create(command.AuthorId));
+            return Errors.User.NotFound;
         }
 
+        // 3. Create the comment
         var comment = Comment.Create(
             AuthorId.Create(author.Id.Value),
             PostId.Create(command.PostId),
             command.Content);
 
-        post.AddComment(comment);
+        // 4. Persist comment
+        await _commentRepository.AddAsync(comment);
 
-        return comment;
+        return (comment, author.Username);
     }
 }

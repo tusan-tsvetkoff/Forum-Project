@@ -57,4 +57,9 @@ public sealed class Author : AggregateRoot<AuthorId, string>
     {
         _postIds.Add(postId);
     }
+
+    public void AddCommentId(CommentId commentId)
+    {
+        _commentIds.Add(commentId);
+    }
 }

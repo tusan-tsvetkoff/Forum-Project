@@ -11,7 +11,7 @@ public record PostResponse(
      DateTime CreatedDateTime,
      DateTime UpdatedDateTime,
      Likes Likes,
-     Likes Dislikes,
+     Dislikes Dislikes,
      List<CommentResponse> Comments);
 
 public record Likes(

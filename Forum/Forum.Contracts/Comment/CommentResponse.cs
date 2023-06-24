@@ -1,7 +1,8 @@
 ﻿namespace Forum.Contracts.Comment;
 
 public record CommentResponse(
-    string UserId,
-    string CommentId,
+    string Id,
+    string PostId,
     string Content,
-    DateTime CreatedDateTime);
+    string Author,
+    string Timestamp);

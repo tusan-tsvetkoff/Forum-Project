@@ -85,6 +85,7 @@ POST {{host}}/api/posts
 "Id": "kfk2fk2f239rmkl-13193mxzmdaskd-bmasfmaski31",
 "Title": "A title",
 "Content": "This is the content of the post.",
+"Comments":[],
 "Tags": ["discussion", "etc."],
 "CreatedAt": "2023-06-10T12:34:56Z"
 }

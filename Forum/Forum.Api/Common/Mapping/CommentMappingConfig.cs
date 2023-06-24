@@ -14,11 +14,12 @@ namespace Forum.Api.Common.Mapping
                 .Map(dest => dest.AuthorId, src => src.UserId)
                 .Map(dest => dest.PostId, src => src.PostId);
 
-            config.NewConfig<Comment, CommentResponse>()
-                .Map(dest => dest.CommentId, src => src.Id.Value.ToString())
-                .Map(dest => dest.UserId, src => src.AuthorId.Value.ToString())
-                .Map(dest => dest.Content, src => src.Content)
-                .Map(dest => dest.CreatedDateTime, src => src.CreatedAt);
+            config.NewConfig<(Comment, string AuthorUserName), CommentResponse>()
+                .Map(dest => dest.Author, src => src.AuthorUserName)
+                .Map(dest => dest.Id, src => src.Item1.Id.Value.ToString())
+                .Map(dest => dest.PostId, src => src.Item1.PostId.Value.ToString())
+                .Map(dest => dest.Content, src => src.Item1.Content)
+                .Map(dest => dest.Timestamp, src => src.Item1.CreatedAt.ToString("dd-MM-yy HH:mm:ss"));
         }
     }
 }

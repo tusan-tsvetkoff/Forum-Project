@@ -39,9 +39,12 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, ErrorOr<(List
                 .OrderBy(GetSortProperty(request));
         }
 
+        int page = request.Page ?? 1;
+        int pageSize = request.PageSize ?? 10;
+
         var users = await usersQuery
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         var userCount = await usersQuery.CountAsync(cancellationToken);
@@ -50,8 +53,8 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, ErrorOr<(List
 
         var pageInfo = new PageInfo
         (
-            request.Page,
-            request.PageSize,
+            page,
+            pageSize,
             userCount,
             hasNextPage,
             hasPreviousPage

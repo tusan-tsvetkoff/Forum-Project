@@ -9,5 +9,5 @@ public record GetUsersQuery(
     string? SearchTerm,
     string? SortColumn,
     string? SortOrder,
-    int Page,
-    int PageSize) : IRequest<ErrorOr<(List<User>, PageInfo)>>;
+    int? Page,
+    int? PageSize) : IRequest<ErrorOr<(List<User>, PageInfo)>>;

@@ -30,7 +30,7 @@ namespace Forum.Api.Controllers
 
             return queryResult.Match(
                 posts => Ok(_mapper.Map<List<PostResponse>>(posts)),
-                errors => Problem(errors));
+                errors => Problem());
         }
 
         [HttpGet("posts/most-recent")]
@@ -44,7 +44,7 @@ namespace Forum.Api.Controllers
 
             return queryResult.Match(
                 posts => Ok(_mapper.Map<List<PostResponse>>(posts)),
-                errors => Problem(errors));
+                errors => Problem());
         }
     }
 }

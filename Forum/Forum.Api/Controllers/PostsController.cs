@@ -19,19 +19,15 @@ public class PostsController : ApiController
 {
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    private readonly IUserIdProvider _userIdProvider;
-
-    public PostsController(IMapper mapper, IMediator mediator, IUserIdProvider userIdProvider)
+    public PostsController(IMapper mapper, IMediator mediator)
     {
         _mapper = mapper;
         _mediator = mediator;
-        _userIdProvider = userIdProvider;
     }
 
     [HttpPost("")]
     public async Task<IActionResult> CreatePost(CreatePostRequest request)
     {
-        // WHY DID I NOT KNOW ABOUT THIS UNTIL NOW?!
         var userIdentity = User.Identity as ClaimsIdentity;
         var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -83,49 +79,17 @@ public class PostsController : ApiController
                },
                errors => Problem());
     }
-    private static string ExtractTokenFromAuthorizationHeader(string authorizationHeader)
-    {
-        return authorizationHeader?.Replace("Bearer ", string.Empty)!;
-    }
-
-    [HttpPost]
-    [Route("api/posts/{postId}/like")]
-    public IActionResult LikePost(string postId)
-    {
-        // var command = _mapper.Map<LikePostCommand>(postId);
-
-        // var likePostResult = await _mediator.Send(command);
-
-        // return likePostResult.Match(
-        //post => Ok(
-        //    StatusCode(statusCode: StatusCodes.Status204NoContent)),
-        //errors => Problem(errors));
-
-        return Ok(); // Return a 200 OK response indicating the like operation was successful
-    }
-
-    [HttpPost]
-    [Route("api/posts/{postId}/dislike")]
-    public IActionResult DislikePost(string postId)
-    {
-        // Find the post by postId and perform the necessary logic to increment the dislike count
-        // Update the post in the data store
-
-        return Ok(); // Return a 200 OK response indicating the dislike operation was successful
-    }
 
     [HttpDelete("{postId:guid}")]
     public async Task<IActionResult> DeletePost(
-        [FromRoute] Guid postId,
-        [FromHeader(Name = "Authorization")] string authorizationHeader)
+        [FromRoute] Guid postId)
     {
-        string token = ExtractTokenFromAuthorizationHeader(authorizationHeader);
-        string userId = _userIdProvider.GetUserId(token);
+        var userIdentity = User.Identity as ClaimsIdentity;
+        var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        ErrorOr<Guid> userIdResult = Guid.TryParse(userId, out var resultId)
-            ? resultId
-            : Errors.Authentication.InvalidGuid;
-
+        ErrorOr<Guid> userIdResult = Guid.TryParse(authId, out var userId)
+                ? userId
+                : Errors.Authentication.InvalidGuid;
         if (userIdResult.IsError)
         {
             return Problem(
@@ -133,7 +97,7 @@ public class PostsController : ApiController
                 title: userIdResult.FirstError.Description);
         }
 
-        var command = _mapper.Map<DeletePostCommand>((postId, resultId));
+        var command = _mapper.Map<DeletePostCommand>((postId, userId));
 
         var commandResult = await _mediator.Send(command);
 

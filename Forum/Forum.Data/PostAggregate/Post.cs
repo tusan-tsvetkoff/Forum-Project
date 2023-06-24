@@ -62,10 +62,9 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         return post;
     }
 
-    public ErrorOr<Success> AddComment(Comment comment)
+    public void AddComment(CommentId commentId)
     {
-        //_comments.Add(comment);
-        return Result.Success;
+        _commentIds.Add(commentId);
     }
 
     public void IncrementLikes()

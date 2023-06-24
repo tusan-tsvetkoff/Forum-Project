@@ -1,9 +1,4 @@
 ﻿using ErrorOr;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Data.Common.Errors
 {
@@ -19,7 +14,6 @@ namespace Forum.Data.Common.Errors
             public static Error NotFound => Error.NotFound(
                 description: "Post was not found.",
                 code: "Post.NotFound");
-
             public static Error InvalidSort => Error.Validation(
                 description: "Invalid sort type.",
                 code: "Post.InvalidSort");

@@ -25,7 +25,7 @@ namespace Forum.Application.Authentication.Queries.Login
         {
             await Task.CompletedTask;
             // 1. Validate existance
-            if (await _userRepository.GetUserByEmail(querry.Email) is not User user)
+            if (await _userRepository.GetUserByEmailAsync(querry.Email) is not User user)
             {
                 return Errors.Authentication.InvalidCredentials;
             }

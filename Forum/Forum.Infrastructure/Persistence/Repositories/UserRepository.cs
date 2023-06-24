@@ -21,7 +21,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<User?> GetUserByEmail(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(user => user.Email == email);
         }
@@ -31,9 +31,14 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == userId);
         }
 
-        public async Task<User?> GetUserByUsername(string username)
+        public async Task<User?> GetUserByUsernameAsyc(string username)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
+        }
+
+        public async Task<bool> IsEmailUniqueAsync(string email)
+        {
+            return !await _dbContext.Users.AnyAsync(u => u.Email == email);
         }
 
         public async Task DeleteAsync(User user)

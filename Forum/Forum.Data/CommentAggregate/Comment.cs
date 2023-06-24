@@ -1,4 +1,5 @@
 ﻿using Forum.Data.AuthorAggregate.ValueObjects;
+using Forum.Data.CommentAggregate.Events;
 using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate.ValueObjects;
@@ -42,7 +43,9 @@ public sealed class Comment : AggregateRoot<CommentId, Guid>
         authorId,
         postId,
         content,
-        DateTime.Now);
+        DateTime.UtcNow);
+
+        comment.AddDomainEvent(new CommentCreated(comment));
 
         return comment;
     }

@@ -1,8 +1,6 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Contracts.Common;
-using Forum.Data.AuthorAggregate;
-using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -49,17 +47,20 @@ public class GetPostsQueryHandler :
             postQuery = postQuery.OrderBy(GetSortProperty(request));
         }
 
+        int page = request.Page ?? 1;
+        int pageSize = request.PageSize ?? 10;
+
         var posts = await postQuery
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
         var postCount = await postQuery.CountAsync(cancellationToken);
 
         HasPrevAndOrNextPage(request, postCount, out bool hasPreviousPage, out bool hasNextPage);
 
         var pageInfo = new PageInfo(
-            request.Page,
-            request.PageSize,
+            page,
+            pageSize,
             postCount,
             hasNextPage,
             hasPreviousPage);

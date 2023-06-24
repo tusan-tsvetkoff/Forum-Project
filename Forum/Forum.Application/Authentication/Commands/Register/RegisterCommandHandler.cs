@@ -24,10 +24,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         // 1. Checking if the email is unique in the system or not.
-        if (await _userRepository.GetUserByEmail(command.Email) is not null)
+        /*if (await _userRepository.GetUserByEmailAsync(command.Email) is not null)
         {
             return Errors.User.DuplicateEmail;
-        }
+        }*/
 
         // 2.Creating a user (generating a unique ID) & Persisting to DB(in-memory for now).
         // 2.1 Hash the password before persisting to DB.

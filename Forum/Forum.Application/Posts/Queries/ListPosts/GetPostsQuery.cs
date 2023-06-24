@@ -14,6 +14,6 @@ public record GetPostsQuery(
     string? SearchTerm,
     string? SortColumn,
     string? SortOrder,
-    int Page,
-    int PageSize,
+    int? Page,
+    int? PageSize,
     string? Username) : IRequest<ErrorOr<(List<Post>, PageInfo)>>;

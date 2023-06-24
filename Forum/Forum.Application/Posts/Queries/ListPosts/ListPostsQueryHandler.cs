@@ -34,7 +34,7 @@ namespace Forum.Application.Posts.Queries.ListPosts
                 return Errors.Post.InvalidSort;
             }
 
-            var user = await _userRepository.GetUserByUsername(query.Username);
+            var user = await _userRepository.GetUserByUsernameAsyc(query.Username);
             var author = await _authorRepository.GetByUserIdAsync(UserId.Create(user.Id.Value));
 
             // Pagination

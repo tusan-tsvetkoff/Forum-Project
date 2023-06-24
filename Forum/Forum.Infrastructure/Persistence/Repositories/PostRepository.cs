@@ -38,10 +38,16 @@ namespace Forum.Infrastructure.Persistence.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<bool> PostExistsAsync(PostId postId)
+        {
+            return await _dbContext.Posts.AnyAsync(p => p.Id == postId);
+        }
+
         public async Task DeleteAsync(PostId postId)
         {
-            
+            _dbContext.Posts.Remove(await GetByIdAsync(postId));
         }
+
         public IQueryable<Post> GetPosts()
         {
             return _dbContext.Posts.AsQueryable();
@@ -88,9 +94,10 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return (posts, postCount);
         }
 
-        public Task<int> GetPostCountAsync()
+        public async Task UpdateAsync(Post post)
         {
-            throw new NotImplementedException();
+            _dbContext.Update(post);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

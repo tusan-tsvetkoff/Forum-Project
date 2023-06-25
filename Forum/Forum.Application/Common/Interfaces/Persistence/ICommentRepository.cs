@@ -12,4 +12,6 @@ public interface ICommentRepository
 {
     Task AddAsync(Comment comment);
     Task DeleteAsync(Comment comment);
+    Task<Comment> GetByIdAsync(CommentId commentId);
+    Task<IQueryable<Comment>> GetCommentsAsync();
 }

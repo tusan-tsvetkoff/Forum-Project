@@ -1,6 +1,8 @@
 ﻿using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.CommentAggregate;
 using Forum.Data.CommentAggregate.ValueObjects;
+using Forum.Data.PostAggregate.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,5 +32,22 @@ public class CommentRepository : ICommentRepository
         _dbContext.Remove(comment);
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<Comment> GetByIdAsync(CommentId commentId)
+    {
+        var comment = await _dbContext.Comments.FirstOrDefaultAsync(c => c.Id == commentId);
+        return comment;
+    }
+
+    public async Task<IEnumerable<Comment>> GetByPostId(PostId postId)
+    {
+        var comments = await _dbContext.Comments.Where(c => c.PostId == postId).ToListAsync();
+        return comments;
+    }
+
+    public async Task<IQueryable<Comment>> GetCommentsAsync()
+    {
+        return await Task.FromResult(_dbContext.Comments.AsQueryable());
     }
 }

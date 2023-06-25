@@ -2,6 +2,7 @@
 using Forum.Application.Users.Commands.UpdateProfile;
 using Forum.Application.Users.Queries;
 using Forum.Contracts.Common;
+using Forum.Contracts.Post;
 using Forum.Contracts.User;
 using Forum.Data.AuthorAggregate;
 using Forum.Data.UserAggregate;
@@ -39,5 +40,9 @@ public class UserMappingConfig : IRegister
             .Map(dest => dest.TotalCount, src => src.TotalCount)
             .Map(dest => dest.HasNextPage, src => src.HasNextPage)
             .Map(dest => dest.HasPreviousPage, src => src.HasPreviousPage);
+
+        config.NewConfig<Author, AuthorResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.Username, src => src.Username);
     }
 }

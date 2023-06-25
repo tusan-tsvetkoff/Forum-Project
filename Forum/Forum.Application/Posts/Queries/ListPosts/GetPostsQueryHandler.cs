@@ -1,6 +1,7 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Contracts.Common;
+using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ using System.Linq.Expressions;
 namespace Forum.Application.Posts.Queries.ListPosts;
 
 public class GetPostsQueryHandler :
-    IRequestHandler<GetPostsQuery, ErrorOr<(List<Post>, PageInfo)>>
+    IRequestHandler<GetPostsQuery, ErrorOr<(List<ListedPostResponse>, PageInfo)>>
 {
     private readonly IPostRepository _postRepository;
     private readonly IAuthorRepository _authorRepository;
@@ -19,7 +20,7 @@ public class GetPostsQueryHandler :
         _postRepository = postRepository;
         _authorRepository = authorRepository;
     }
-    public async Task<ErrorOr<(List<Post>, PageInfo)>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<(List<ListedPostResponse>, PageInfo)>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
     {
         var postQuery = _postRepository.GetPosts();
 
@@ -38,7 +39,7 @@ public class GetPostsQueryHandler :
                 p.Content.Contains(request.SearchTerm));
         }
 
-        if(request.SortOrder == "desc")
+        if (request.SortOrder == "desc")
         {
             postQuery = postQuery.OrderByDescending(GetSortProperty(request));
         }
@@ -54,9 +55,13 @@ public class GetPostsQueryHandler :
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+
         var postCount = await postQuery.CountAsync(cancellationToken);
 
         HasPrevAndOrNextPage(request, postCount, out bool hasPreviousPage, out bool hasNextPage);
+
+        // Just for visual purposes if the page size is bigger than the post count
+        pageSize = pageSize > postCount ? postCount : pageSize;
 
         var pageInfo = new PageInfo(
             page,
@@ -65,7 +70,30 @@ public class GetPostsQueryHandler :
             hasNextPage,
             hasPreviousPage);
 
-        return (posts, pageInfo);
+        // Serious refactoring needed here
+        List<ListedPostResponse> postResponseTasks = MapPostResponseList(posts);
+
+        return (postResponseTasks, pageInfo);
+    }
+
+    private List<ListedPostResponse> MapPostResponseList(List<Post> posts)
+    {
+        return posts.Select(p =>
+        {
+            var username = _authorRepository.GetByAuthorIdAsync(p.AuthorId)!.Result!.Username;
+            return new ListedPostResponse(
+                p.Id.Value.ToString(),
+                new AuthorResponse(
+                    p.AuthorId.Value,
+                    username),
+                p.Title,
+                p.Content,
+                new Likes(p.Likes.Value),
+                new Dislikes(p.Dislikes.Value),
+                p.CommentIds.Count,
+                p.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"),
+                p.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"));
+        }).ToList();
     }
 
     private static void HasPrevAndOrNextPage(GetPostsQuery request, int postCount, out bool hasPreviousPage, out bool hasNextPage)

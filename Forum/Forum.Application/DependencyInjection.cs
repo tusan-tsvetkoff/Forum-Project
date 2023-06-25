@@ -16,7 +16,6 @@ namespace Forum.Application
                 typeof(IPipelineBehavior<,>),
                 typeof(ValidationBehavior<,>));
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             return services;
         }

@@ -1,4 +1,6 @@
-﻿namespace Forum.Contracts.Comment;
+﻿using Forum.Contracts.Common;
+
+namespace Forum.Contracts.Comment;
 
 public record CommentResponse(
     string Id,
@@ -6,3 +8,4 @@ public record CommentResponse(
     string Content,
     string Author,
     string Timestamp);
+

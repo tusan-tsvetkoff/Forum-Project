@@ -5,6 +5,7 @@ using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
 using Mapster;
+using Microsoft.AspNetCore.Routing.Constraints;
 
 namespace Forum.Api.Common.Mapping;
 
@@ -13,6 +14,7 @@ public class PostMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
+
         config.NewConfig<(CreatePostRequest Request, Guid UserId), CreatePostCommand>()
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
@@ -37,6 +39,11 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.SortOrder, src => src.SortOrder)
             .Map(dest => dest.Username, src => src.Username);
 
+        config.NewConfig<Post, (Likes, Dislikes)>()
+            .Map(dest => dest.Item1, src => src.Likes.Value)
+            .Map(dest => dest.Item2, src => src.Dislikes.Value);
+
+
         config.NewConfig<Guid, GetPostQuery>()
             .Map(dest => dest.PostId, src => src);
 
@@ -47,6 +54,12 @@ public class PostMappingConfig : IRegister
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.AuthorId, src => src.AuthorId.Value.ToString());
+
+        config.NewConfig<Post, ListedPostResponse>()
+            .Map(dest => dest.Id, src => src.Id.Value.ToString())
+            .Map(dest => dest.Timestamp, src => src.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
+            .Map(dest => dest.EditedTimestamp, src => src.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
+            .Map(dest => dest.Comments, src => src.CommentIds.Count);
     }
 }
 

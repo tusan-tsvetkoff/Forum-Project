@@ -14,5 +14,9 @@ public static partial class Errors
         public static Error UsernameExists => Error.Validation(
             code: "Error.Author.Username.Exists",
             description: "Username already exists.");
+
+        public static Error NotFound => Error.NotFound(
+            code: "Error.Author.NotFound",
+            description: "Author not found.");
     }
 }

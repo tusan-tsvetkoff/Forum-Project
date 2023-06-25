@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddControllers();
         services.AddSingleton<ProblemDetailsFactory, ForumProblemDetailsFactory>();
         services.AddSingleton<IUserIdProvider, TokenUserIdProvider>();
+
         services.AddMappings();
         return services;
     }

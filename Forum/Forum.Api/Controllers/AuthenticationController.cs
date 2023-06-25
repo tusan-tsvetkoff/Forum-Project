@@ -16,16 +16,13 @@ public class AuthenticationController : ApiController
 {
     private readonly ISender _mediator;
     private readonly IMapper _mapper;
-    private readonly LinkGenerator _linkGenerator;
 
     public AuthenticationController(
         ISender mediator,
-        IMapper mapper,
-        LinkGenerator linkGenerator)
+        IMapper mapper)
     {
         _mediator = mediator;
         _mapper = mapper;
-        _linkGenerator = linkGenerator;
     }
 
     [HttpPost("register")]

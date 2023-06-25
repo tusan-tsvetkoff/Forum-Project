@@ -8,22 +8,39 @@ public record PostResponse(
      string AuthorId,
      string Title,
      string Content,
-     DateTime CreatedDateTime,
-     DateTime UpdatedDateTime,
      Likes Likes,
      Dislikes Dislikes,
-     List<CommentResponse> Comments);
+     List<PostCommentResponse> Comments,
+     DateTime CreatedDateTime,
+     DateTime UpdatedDateTime);
+
+public record ListedPostResponse(
+    string Id,
+    AuthorResponse Author,
+    string Title,
+    string Content,
+    Likes Likes,
+    Dislikes Dislikes,
+    int Comments,
+    string Timestamp,
+    string EditedTimestamp);
+
+public record AuthorResponse(
+    string Id,
+    string Username);
 
 public record Likes(
-    int Value);
+    int Amount);
 
 public record Dislikes(
-    int Value);
-
-public record PostResponseList(
-    List<PostResponse> Posts,
-       int TotalPosts);
+    int Amount);
 
 public record PostResponseListNew(
-    List<PostResponse> Posts,
+    List<ListedPostResponse> Posts,
     PageInfo PageInfo);
+
+public record PostCommentResponse(
+    string Id,
+    string Content,
+    string Author,
+    string Timestamp);

@@ -73,8 +73,7 @@ public class PostsController : ApiController
         return listPostsResult.Match(
                posts =>
                {
-                   var postResponses = posts.Item1.Select(post => _mapper.Map<PostResponse>(post)).ToList();
-                   var postResponseList = new PostResponseListNew(Posts: postResponses, PageInfo: posts.Item2);
+                   var postResponseList = new PostResponseListNew(Posts: posts.Item1, PageInfo: posts.Item2);
                    return Ok(postResponseList);
                },
                errors => Problem());

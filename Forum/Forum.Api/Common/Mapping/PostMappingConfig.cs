@@ -1,11 +1,11 @@
 ﻿using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
+using Forum.Application.Posts.Commands.UpdatePost;
 using Forum.Application.Posts.Queries.GetPost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
 using Mapster;
-using Microsoft.AspNetCore.Routing.Constraints;
 
 namespace Forum.Api.Common.Mapping;
 
@@ -19,17 +19,6 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.UserId, src => src.UserId)
             .Map(dest => dest, src => src.Request);
 
-        // Create mapping for the get posts query (most commented)
-        config.NewConfig<GetMostCommentedPublicRequest, ListPostsQuery>()
-            .Map(dest => dest.Sort, src => src.MostCommented)
-            .Map(dest => dest.Page, src => src.PageCount)
-            .Map(dest =>dest.PageSize, src => src.PageSize);
-
-        config.NewConfig<GetMostRecentPublicRequest, ListPostsQuery>()
-            .Map(dest => dest.Sort, src => src.MostRecent)
-            .Map(dest => dest.Page, src => src.PageCount)
-            .Map(dest => dest.PageSize, src => src.PageSize);
-
         // Create mapping for query params to list posts request
         config.NewConfig<GetPostsQueryParams, GetPostsQuery>()
             .Map(dest => dest.Page, src => src.Page)
@@ -42,7 +31,6 @@ public class PostMappingConfig : IRegister
         config.NewConfig<Post, (Likes, Dislikes)>()
             .Map(dest => dest.Item1, src => src.Likes.Value)
             .Map(dest => dest.Item2, src => src.Dislikes.Value);
-
 
         config.NewConfig<Guid, GetPostQuery>()
             .Map(dest => dest.PostId, src => src);
@@ -60,6 +48,9 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.Timestamp, src => src.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
             .Map(dest => dest.EditedTimestamp, src => src.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
             .Map(dest => dest.Comments, src => src.CommentIds.Count);
+
+        config.NewConfig<UpdatePostRequest, UpdatePostCommand>()
+            .Map(dest => dest, src => src);
     }
 }
 

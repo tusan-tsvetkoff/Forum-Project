@@ -1,14 +1,14 @@
 ﻿using Forum.Application.Comments.Commands;
 using Forum.Application.Comments.Commands.Delete;
+using Forum.Application.Comments.Commands.Update;
 using Forum.Application.Comments.Common;
 using Forum.Application.Comments.Queries.Get;
 using Forum.Application.Comments.Queries.GetList;
+using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Comment;
 using Forum.Contracts.Post;
 using Forum.Data.CommentAggregate;
-using Forum.Data.PostAggregate.ValueObjects;
 using Mapster;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Forum.Api.Common.Mapping
 {
@@ -49,7 +49,15 @@ namespace Forum.Api.Common.Mapping
             config.NewConfig<(Guid, GetCommentsQueryParams), GetCommentsQuery>()
                 .Map(dest => dest.PostId, src => src.Item1)
                 .Map(dest => dest, src => src.Item2);
-                
+
+            config.NewConfig<UpdateCommentRequest, UpdateCommentCommand>()
+                .Map(dest => dest, src => src);
+
+            config.NewConfig<GetMostCommentedPublicRequest, GetPostsQuery>()
+                 .Map(dest => dest.SortColumn, src => src.SortColumn)
+                 .Map(dest => dest.Page, src => src.Page)
+                 .Map(dest => dest.PageSize, src => src.PageSize)
+                 .Map(dest => dest.SortOrder, src => src.SortOrder);
         }   
     }
 }

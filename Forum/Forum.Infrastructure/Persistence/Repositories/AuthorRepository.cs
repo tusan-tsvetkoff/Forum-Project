@@ -1,12 +1,10 @@
-﻿using ErrorOr;
-using Forum.Application.Common.Interfaces.Persistence;
+﻿using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.AuthorAggregate;
 using Forum.Data.AuthorAggregate.ValueObjects;
-using Forum.Data.Common.Errors;
 using Forum.Data.UserAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace Forum.Infrastructure.Persistence;
+namespace Forum.Infrastructure.Persistence.Repositories;
 
 public class AuthorRepository : IAuthorRepository
 {
@@ -26,22 +24,22 @@ public class AuthorRepository : IAuthorRepository
 
     public async Task<Author?> GetByAuthorIdAsync(AuthorId authorId)
     {
-       return await _dbContext.Author.FirstOrDefaultAsync(a => a.Id == authorId);
+        return await _dbContext.Authors.FirstOrDefaultAsync(a => a.Id == authorId);
     }
 
     public async Task<Author?> GetByUserIdAsync(UserId userId)
     {
-        return await _dbContext.Author.FirstOrDefaultAsync(a => a.UserId == userId);
+        return await _dbContext.Authors.FirstOrDefaultAsync(a => a.UserId == userId);
     }
 
     public async Task<Author?> GetByUsernameAsync(string username)
     {
-        return await _dbContext.Author.FirstOrDefaultAsync(a => a.Username == username);
+        return await _dbContext.Authors.FirstOrDefaultAsync(a => a.Username == username);
     }
 
     public async Task UpdateAsync(Author author)
     {
-        _dbContext.Author.Update(author);
+        _dbContext.Authors.Update(author);
         await _dbContext.SaveChangesAsync();
     }
 

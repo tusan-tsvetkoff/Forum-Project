@@ -7,7 +7,7 @@ namespace Forum.Application.Common.Interfaces.Persistence
     public interface IPostRepository
     {
         Task AddAsync(Post post);
-        Task DeleteAsync(PostId postId);
+        Task DeleteAsync(Post post);
         Task<(List<Post>, int postCount)> GetAllPostsAsync(string? sortBy,
             string? searchTerm,
             AuthorId? authorId,
@@ -17,6 +17,6 @@ namespace Forum.Application.Common.Interfaces.Persistence
         IQueryable<Post> GetPosts();
         Task<List<Post>> ListAsync(AuthorId authorId);
         Task<bool> PostExistsAsync(PostId postId);
-        Task UpdateAsync(Post post);
+        Task UpdateAsync(Post post, CancellationToken cancellationToken);
     }
 }

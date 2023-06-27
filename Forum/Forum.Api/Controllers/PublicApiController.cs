@@ -23,27 +23,50 @@ namespace Forum.Api.Controllers
         [HttpGet("posts/most-commented")]
         public async Task<IActionResult> GetMostCommentedPosts()
         {
-            var request = new GetMostCommentedPublicRequest();
-            var query = _mapper.Map<ListPostsQuery>(request);
+            var request = new GetPostsQueryParams
+            (
+                null,
+                "comments",
+                "desc",
+                null,
+                1,
+                10
+            );
 
+            var query = _mapper.Map<GetPostsQuery>(request);
             var queryResult = await _mediator.Send(query);
 
             return queryResult.Match(
-                posts => Ok(_mapper.Map<List<PostResponse>>(posts)),
+                posts =>
+                {
+                    var postResponseList = new PostResponseListNew(Posts: posts.Item1, PageInfo: posts.Item2);
+                    return Ok(postResponseList);
+                },
                 errors => Problem());
         }
 
         [HttpGet("posts/most-recent")]
         public async Task<IActionResult> GetMostRecentPosts()
         {
-            var request = new GetMostRecentPublicRequest();
+            var request = new GetPostsQueryParams
+            (
+                null,
+                "created",
+                "desc",
+                null,
+                1,
+                10);
 
-            var query = _mapper.Map<ListPostsQuery>(request);
+            var query = _mapper.Map<GetPostsQuery>(request);
 
             var queryResult = await _mediator.Send(query);
 
             return queryResult.Match(
-                posts => Ok(_mapper.Map<List<PostResponse>>(posts)),
+                posts =>
+                {
+                    var postResponseList = new PostResponseListNew(Posts: posts.Item1, PageInfo: posts.Item2);
+                    return Ok(postResponseList);
+                },
                 errors => Problem());
         }
     }

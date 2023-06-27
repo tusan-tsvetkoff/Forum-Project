@@ -45,9 +45,9 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             _dbContext.Users.Remove(user);
 
-            if (await _dbContext.Author.FirstOrDefaultAsync(author => author.UserId == user.Id) is Author author) 
+            if (await _dbContext.Authors.FirstOrDefaultAsync(author => author.UserId == user.Id) is Author author) 
             {
-                _dbContext.Author.Remove(author);
+                _dbContext.Authors.Remove(author);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Forum.Infrastructure.Persistence.Repositories
         public async void Update(User user)
         {
             _dbContext.Users.Update(user);
-            _dbContext.Author.Update(_dbContext.Author.FirstOrDefault(author => author.UserId == user.Id)!);
+            _dbContext.Authors.Update(_dbContext.Authors.FirstOrDefault(author => author.UserId == user.Id)!);
             await _dbContext.SaveChangesAsync();
         }
 

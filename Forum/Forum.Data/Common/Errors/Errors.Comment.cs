@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using Forum.Data.Common.Errors.CustomErrors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,12 @@ namespace Forum.Data.Common.Errors
                 description: "Comment not found.",
                 code: "Comment.NotFound");
 
-            public static Error NotOwner => Error.Validation(
+            public static Error NotOwner => MyErrors.Forbidden(
                 description: "You are not the owner of this comment.", // placeholder
                 code: "Comment.NotOwner");
+                
+
         }
+
     }
 }

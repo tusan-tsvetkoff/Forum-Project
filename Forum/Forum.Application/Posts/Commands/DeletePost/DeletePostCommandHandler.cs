@@ -10,31 +10,36 @@ using System.Runtime.CompilerServices;
 
 namespace Forum.Application.Posts.Commands.DeletePost;
 
-public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, ErrorOr<Post>>
+public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, ErrorOr<Deleted>>
 {
     private readonly IPostRepository _postRepository;
+    private readonly IAuthorRepository _authorRepository;
 
-    public DeletePostCommandHandler(IPostRepository postRepository)
+    public DeletePostCommandHandler(IPostRepository postRepository, IAuthorRepository authorRepository)
     {
         _postRepository = postRepository;
+        _authorRepository = authorRepository;
     }
 
-    public async Task<ErrorOr<Post>> Handle(DeletePostCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Deleted>> Handle(DeletePostCommand command, CancellationToken cancellationToken)
     {
-        if (await _postRepository.PostExistsAsync(PostId.Create(command.PostId)))
+        var postId = PostId.Create(command.PostId);
+
+        if (!await _postRepository.PostExistsAsync(postId))
         {
             return Errors.Post.NotFound;
         }
 
-        var post = await _postRepository.GetByIdAsync(PostId.Create(command.PostId));
+        var post = await _postRepository.GetByIdAsync(postId);
+        var author = await _authorRepository.GetByUserIdAsync(UserId.Create(command.UserId));
 
-        if (post!.AuthorId != AuthorId.Create(UserId.Create(command.UserId).Value.ToString()))
+        if (post!.AuthorId != author!.Id)
         {
             return Errors.Authentication.UnauthorizedAction;
         }
 
-        await _postRepository.DeleteAsync(PostId.Create(post.Id.Value));
+        await _postRepository.DeleteAsync(post);
 
-        return post;
+        return Result.Deleted;
     }
 }

@@ -21,7 +21,7 @@ namespace Forum.Infrastructure.Persistence
         public DbSet<Tag> Tags { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Comment> Comments { get; set; } = null!;
-        public DbSet<Author> Author { get; set; } = null!;
+        public DbSet<Author> Authors { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

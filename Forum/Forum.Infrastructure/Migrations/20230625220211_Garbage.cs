@@ -5,34 +5,30 @@
 namespace Forum.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class ModifyingUsersAboutC : Migration
+    public partial class Garbage : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "About",
-                table: "Users",
-                type: "nvarchar(256)",
-                maxLength: 256,
-                nullable: true,
+                name: "Content",
+                table: "Comments",
+                type: "nvarchar(max)",
+                nullable: false,
                 oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                oldType: "text");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "About",
-                table: "Users",
-                type: "nvarchar(max)",
+                name: "Content",
+                table: "Comments",
+                type: "text",
                 nullable: false,
-                defaultValue: "",
                 oldClrType: typeof(string),
-                oldType: "nvarchar(256)",
-                oldMaxLength: 256,
-                oldNullable: true);
+                oldType: "nvarchar(max)");
         }
     }
 }

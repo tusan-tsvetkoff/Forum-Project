@@ -49,4 +49,16 @@ public sealed class Comment : AggregateRoot<CommentId, Guid>
 
         return comment;
     }
+
+    public static void Update(
+        Comment comment,
+        string content, 
+        out string editedTimestamp)
+    {
+        comment.Content = content;
+        comment.UpdatedAt = DateTime.UtcNow;
+        editedTimestamp = comment.UpdatedAt?.ToString("dd-MM-yy hh:mm:ss")!;
+
+        comment.AddDomainEvent(new CommentUpdated(comment));
+    }
 }

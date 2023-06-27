@@ -1,14 +1,16 @@
 ﻿using Forum.Application.Comments.Commands;
 using Forum.Application.Comments.Commands.Delete;
+using Forum.Application.Comments.Commands.Update;
 using Forum.Application.Comments.Common;
 using Forum.Application.Comments.Queries.Get;
 using Forum.Application.Comments.Queries.GetList;
 using Forum.Contracts.Comment;
-using Forum.Data.UserAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Forum.Api.Common.Errors;
+using Forum.Data.Common.Errors;
 
 namespace Forum.Api.Controllers;
 
@@ -29,10 +31,7 @@ public class CommentsApiController : ApiController
         [FromRoute] Guid postId,
         [FromBody] CreateCommentRequest request)
     {
-        var userIdentity = User.Identity as ClaimsIdentity;
-        var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        var userId = Guid.Parse(authId!);
+        GetUserId(out Guid userId);
 
         var command = _mapper.Map<CreateCommentCommand>((request, userId, postId));
 
@@ -65,13 +64,13 @@ public class CommentsApiController : ApiController
 
     [HttpGet("{postId:guid}/comments")]
     public async Task<IActionResult> GetCommentsAsync(
-        [FromRoute] GetCommentsQueryParams queryParams,
+        [FromQuery] GetCommentsQueryParams queryParams,
         [FromRoute] Guid postId)
     {
         var query = _mapper.Map<GetCommentsQuery>((postId, queryParams));
 
         var queryResult = await _mediator.Send(query);
-        
+
 
         return queryResult.Match(
             comments =>
@@ -95,6 +94,30 @@ public class CommentsApiController : ApiController
         return commandResult.Match(
             deleted => NoContent(),
             error => Problem(error));
+    }
+
+    [HttpPatch("{postId:guid}/comments/{id:guid}")]
+    public async Task<IActionResult> UpdateCommentAsync(
+        [FromRoute] Guid postId,
+        [FromRoute] Guid id,
+        [FromBody] UpdateCommentRequest request)
+    {
+        GetUserId(out Guid userId);
+
+        var requestToMap = request with { PostId = postId, Id = id, UserId = userId };
+
+        var command = _mapper.Map<UpdateCommentCommand>(requestToMap);
+
+        var commandResult = await _mediator.Send(command);
+
+        if(commandResult.IsError && commandResult.FirstError == Errors.Comment.NotOwner)
+        {
+            return Unauthorized();
+        }
+
+        return commandResult.Match(
+               result => NoContent(),
+               error => Problem(error));
     }
 
     private void GetUserId(out Guid userId)

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230621164841_IndexAuthorForgor")]
-    partial class IndexAuthorForgor
+    [Migration("20230625233031_Garbage6")]
+    partial class Garbage6
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,7 +71,7 @@ namespace Forum.Infrastructure.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -83,9 +83,6 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Content")
-                        .HasDatabaseName("IX_Content");
 
                     b.ToTable("Comments", (string)null);
                 });
@@ -102,7 +99,7 @@ namespace Forum.Infrastructure.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(8192)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .HasColumnType("datetime2");

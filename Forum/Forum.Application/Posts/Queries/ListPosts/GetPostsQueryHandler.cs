@@ -39,6 +39,11 @@ public class GetPostsQueryHandler :
                 p.Content.Contains(request.SearchTerm));
         }
 
+        if(request.SortOrder is null && request.SortColumn is null)
+        {
+            postQuery = postQuery.OrderByDescending(p => p.CreatedDateTime);
+        }
+
         if (request.SortOrder == "desc")
         {
             postQuery = postQuery.OrderByDescending(GetSortProperty(request));
@@ -110,6 +115,7 @@ public class GetPostsQueryHandler :
             "title" => p => p.Title,
             "content" => p => p.Content,
             "created" => p => p.CreatedDateTime,
+            "comments" => p => p.CommentIds.Count,
             _ => p => p.CreatedDateTime
         };
     }

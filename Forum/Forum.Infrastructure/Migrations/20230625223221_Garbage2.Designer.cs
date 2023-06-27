@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230621163936_IndexCreate")]
-    partial class IndexCreate
+    [Migration("20230625223221_Garbage2")]
+    partial class Garbage2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,10 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Author_Username");
+
                     b.ToTable("Authors", (string)null);
                 });
 
@@ -65,10 +69,6 @@ namespace Forum.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -79,9 +79,6 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Content")
-                        .HasDatabaseName("IX_Content");
 
                     b.ToTable("Comments", (string)null);
                 });
@@ -112,9 +109,6 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Content")
-                        .HasDatabaseName("IX_Content");
 
                     b.HasIndex("Title")
                         .HasDatabaseName("IX_Title");
@@ -246,6 +240,57 @@ namespace Forum.Infrastructure.Migrations
                     b.Navigation("CommentIds");
 
                     b.Navigation("PostIds");
+                });
+
+            modelBuilder.Entity("Forum.Data.CommentAggregate.Comment", b =>
+                {
+                    b.OwnsOne("Forum.Data.CommentAggregate.ValueObjects.Content", "Content", b1 =>
+                        {
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("Text");
+
+                            b1.HasKey("CommentId");
+
+                            b1.ToTable("Comments");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId");
+                        });
+
+                    b.OwnsMany("Forum.Data.CommentAggregate.ValueObjects.Content", "ContentHistory", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CommentId");
+
+                            b1.ToTable("CommentHistory", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId");
+                        });
+
+                    b.Navigation("Content")
+                        .IsRequired();
+
+                    b.Navigation("ContentHistory");
                 });
 
             modelBuilder.Entity("Forum.Data.PostAggregate.Post", b =>

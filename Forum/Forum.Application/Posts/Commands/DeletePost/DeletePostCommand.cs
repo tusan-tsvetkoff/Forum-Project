@@ -6,4 +6,4 @@ namespace Forum.Application.Posts.Commands.DeletePost;
 
 public record DeletePostCommand(
     Guid UserId,
-    Guid PostId) : IRequest<ErrorOr<Post>>;
+    Guid PostId) : IRequest<ErrorOr<Deleted>>;

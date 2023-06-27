@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230619235248_ModifyingUsersAboutC")]
-    partial class ModifyingUsersAboutC
+    [Migration("20230625234440_Garbage7")]
+    partial class Garbage7
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,6 +52,10 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Author_Username");
 
                     b.ToTable("Authors", (string)null);
                 });
@@ -110,6 +114,9 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Title")
+                        .HasDatabaseName("IX_Title");
+
                     b.ToTable("Posts", (string)null);
                 });
 
@@ -124,6 +131,10 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Name");
 
                     b.ToTable("Tags", (string)null);
                 });
@@ -142,7 +153,7 @@ namespace Forum.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -164,6 +175,14 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Email");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Username");
 
                     b.ToTable("Users", (string)null);
                 });

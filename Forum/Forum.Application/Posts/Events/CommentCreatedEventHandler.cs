@@ -31,6 +31,6 @@ public class CommentCreatedEventHandler : INotificationHandler<CommentCreated>
         post.AddComment(CommentId.Create(commentCreatedEvent.Comment.Id.Value));
 
         await _authorRepository.UpdateAsync(author);
-        await _postRepository.UpdateAsync(post);
+        await _postRepository.UpdateAsync(post, cancellationToken);
     }
 }

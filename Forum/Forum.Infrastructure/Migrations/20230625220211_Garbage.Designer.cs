@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230619215129_ModifyingLikesAndDislikes")]
-    partial class ModifyingLikesAndDislikes
+    [Migration("20230625220211_Garbage")]
+    partial class Garbage
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,10 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Author_Username");
+
                     b.ToTable("Authors", (string)null);
                 });
 
@@ -62,10 +66,6 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AuthorId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -110,6 +110,9 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Title")
+                        .HasDatabaseName("IX_Title");
+
                     b.ToTable("Posts", (string)null);
                 });
 
@@ -125,6 +128,10 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Name");
+
                     b.ToTable("Tags", (string)null);
                 });
 
@@ -134,15 +141,15 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("About")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -164,6 +171,14 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Email");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Username");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -225,6 +240,57 @@ namespace Forum.Infrastructure.Migrations
                     b.Navigation("CommentIds");
 
                     b.Navigation("PostIds");
+                });
+
+            modelBuilder.Entity("Forum.Data.CommentAggregate.Comment", b =>
+                {
+                    b.OwnsOne("Forum.Data.CommentAggregate.ValueObjects.Content", "Content", b1 =>
+                        {
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasColumnName("Content");
+
+                            b1.HasKey("CommentId");
+
+                            b1.ToTable("Comments");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId");
+                        });
+
+                    b.OwnsMany("Forum.Data.CommentAggregate.ValueObjects.Content", "ContentHistory", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CommentId");
+
+                            b1.ToTable("CommentHistory", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId");
+                        });
+
+                    b.Navigation("Content")
+                        .IsRequired();
+
+                    b.Navigation("ContentHistory");
                 });
 
             modelBuilder.Entity("Forum.Data.PostAggregate.Post", b =>

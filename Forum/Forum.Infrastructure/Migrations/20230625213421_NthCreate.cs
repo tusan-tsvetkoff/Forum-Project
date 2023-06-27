@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Forum.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitCreate : Migration
+    public partial class NthCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,7 +34,7 @@ namespace Forum.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AuthorId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -52,8 +52,8 @@ namespace Forum.Infrastructure.Migrations
                     Content = table.Column<string>(type: "nvarchar(max)", maxLength: 8192, nullable: false),
                     CreatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedDateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Likes = table.Column<int>(type: "int", nullable: false),
-                    Dislikes = table.Column<int>(type: "int", nullable: false),
+                    Likes = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    Dislikes = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     AuthorId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -80,11 +80,11 @@ namespace Forum.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    About = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    About = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -132,6 +132,26 @@ namespace Forum.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CommentHistory",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    CommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CommentHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CommentHistory_Comments_CommentId",
+                        column: x => x.CommentId,
+                        principalTable: "Comments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PostCommentIds",
                 columns: table => new
                 {
@@ -158,7 +178,6 @@ namespace Forum.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TagId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     TagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -170,12 +189,6 @@ namespace Forum.Infrastructure.Migrations
                         principalTable: "Posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PostTagIds_Tags_TagId1",
-                        column: x => x.TagId1,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -189,9 +202,25 @@ namespace Forum.Infrastructure.Migrations
                 column: "AuthorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Author_Username",
+                table: "Authors",
+                column: "Username",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CommentHistory_CommentId",
+                table: "CommentHistory",
+                column: "CommentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PostCommentIds_PostId",
                 table: "PostCommentIds",
                 column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Title",
+                table: "Posts",
+                column: "Title");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PostTagIds_PostId",
@@ -199,9 +228,22 @@ namespace Forum.Infrastructure.Migrations
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostTagIds_TagId1",
-                table: "PostTagIds",
-                column: "TagId1");
+                name: "IX_Name",
+                table: "Tags",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Email",
+                table: "Users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -214,7 +256,7 @@ namespace Forum.Infrastructure.Migrations
                 name: "AuthorPostIds");
 
             migrationBuilder.DropTable(
-                name: "Comments");
+                name: "CommentHistory");
 
             migrationBuilder.DropTable(
                 name: "PostCommentIds");
@@ -223,16 +265,19 @@ namespace Forum.Infrastructure.Migrations
                 name: "PostTagIds");
 
             migrationBuilder.DropTable(
+                name: "Tags");
+
+            migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Authors");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "Comments");
 
             migrationBuilder.DropTable(
-                name: "Tags");
+                name: "Posts");
         }
     }
 }

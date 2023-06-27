@@ -1,5 +1,6 @@
 ﻿using ErrorOr;
 using Forum.Api.Common.HttpContexts;
+using Forum.Data.Common.Errors.CustomErrors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -30,6 +31,7 @@ public class ApiController : ControllerBase
     {
         var statusCode = error.Type switch
         {
+            (ErrorType)CustomErrorTypes.Forbidden => StatusCodes.Status403Forbidden,
             ErrorType.Conflict => StatusCodes.Status409Conflict,
             ErrorType.NotFound => StatusCodes.Status404NotFound,
             ErrorType.Validation => StatusCodes.Status400BadRequest,

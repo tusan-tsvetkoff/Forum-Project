@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Forum.Infrastructure.Migrations
 {
     [DbContext(typeof(ForumDbContext))]
-    [Migration("20230619174055_InitCreate")]
-    partial class InitCreate
+    [Migration("20230625213421_NthCreate")]
+    partial class NthCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,10 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Author_Username");
+
                     b.ToTable("Authors", (string)null);
                 });
 
@@ -67,7 +71,8 @@ namespace Forum.Infrastructure.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text")
+                        .HasColumnName("Content");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -110,6 +115,9 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Title")
+                        .HasDatabaseName("IX_Title");
+
                     b.ToTable("Posts", (string)null);
                 });
 
@@ -125,6 +133,10 @@ namespace Forum.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Name");
+
                     b.ToTable("Tags", (string)null);
                 });
 
@@ -134,15 +146,15 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("About")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -164,6 +176,14 @@ namespace Forum.Infrastructure.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Email");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Username");
 
                     b.ToTable("Users", (string)null);
                 });
@@ -227,6 +247,36 @@ namespace Forum.Infrastructure.Migrations
                     b.Navigation("PostIds");
                 });
 
+            modelBuilder.Entity("Forum.Data.CommentAggregate.Comment", b =>
+                {
+                    b.OwnsMany("Forum.Data.CommentAggregate.ValueObjects.Content", "ContentHistory", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("CommentId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CommentId");
+
+                            b1.ToTable("CommentHistory", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("CommentId");
+                        });
+
+                    b.Navigation("ContentHistory");
+                });
+
             modelBuilder.Entity("Forum.Data.PostAggregate.Post", b =>
                 {
                     b.OwnsMany("Forum.Data.CommentAggregate.ValueObjects.CommentId", "CommentIds", b1 =>
@@ -260,7 +310,9 @@ namespace Forum.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("Value")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
+                                .HasDefaultValue(0)
                                 .HasColumnName("Dislikes");
 
                             b1.HasKey("PostId");
@@ -277,7 +329,9 @@ namespace Forum.Infrastructure.Migrations
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<int>("Value")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("int")
+                                .HasDefaultValue(0)
                                 .HasColumnName("Likes");
 
                             b1.HasKey("PostId");
@@ -299,9 +353,6 @@ namespace Forum.Infrastructure.Migrations
                             b1.Property<Guid>("PostId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<Guid?>("TagId")
-                                .HasColumnType("uniqueidentifier");
-
                             b1.Property<Guid>("Value")
                                 .HasColumnType("uniqueidentifier")
                                 .HasColumnName("TagId");
@@ -310,21 +361,10 @@ namespace Forum.Infrastructure.Migrations
 
                             b1.HasIndex("PostId");
 
-                            b1.HasIndex("TagId");
-
-                            b1.ToTable("PostTagIds", null, t =>
-                                {
-                                    t.Property("TagId")
-                                        .HasColumnName("TagId1");
-                                });
+                            b1.ToTable("PostTagIds", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PostId");
-
-                            b1.HasOne("Forum.Data.TagAggregate.Tag", null)
-                                .WithMany()
-                                .HasForeignKey("TagId")
-                                .OnDelete(DeleteBehavior.Restrict);
                         });
 
                     b.Navigation("CommentIds");

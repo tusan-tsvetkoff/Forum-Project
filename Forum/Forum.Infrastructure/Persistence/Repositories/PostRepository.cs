@@ -43,9 +43,11 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return await _dbContext.Posts.AnyAsync(p => p.Id == postId);
         }
 
-        public async Task DeleteAsync(PostId postId)
+        public async Task DeleteAsync(Post post)
         {
-            _dbContext.Posts.Remove(await GetByIdAsync(postId));
+            _dbContext.Posts.Remove(post);
+
+            await _dbContext.SaveChangesAsync();
         }
 
         public IQueryable<Post> GetPosts()
@@ -94,10 +96,11 @@ namespace Forum.Infrastructure.Persistence.Repositories
             return (posts, postCount);
         }
 
-        public async Task UpdateAsync(Post post)
+        public async Task UpdateAsync(Post post, CancellationToken cancellationToken)
         {
             _dbContext.Update(post);
-            await _dbContext.SaveChangesAsync();
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

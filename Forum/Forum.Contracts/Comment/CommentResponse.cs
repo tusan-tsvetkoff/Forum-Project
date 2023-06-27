@@ -8,4 +8,3 @@ public record CommentResponse(
     string Content,
     string Author,
     string Timestamp);
-

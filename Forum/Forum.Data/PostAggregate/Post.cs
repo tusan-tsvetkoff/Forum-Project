@@ -67,6 +67,18 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         _commentIds.Add(commentId);
     }
 
+    public void UpdateContent(string newContent)
+    {
+        Content = newContent;
+        UpdatedDateTime = DateTime.UtcNow;
+    }
+
+    public void UpdateTitle(string newTitle)
+    {
+        Title = newTitle;
+        UpdatedDateTime = DateTime.UtcNow;
+    }
+
     public void IncrementLikes()
     {
         Likes = Likes.Increment();

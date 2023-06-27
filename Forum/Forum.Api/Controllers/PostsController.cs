@@ -1,7 +1,6 @@
-﻿using ErrorOr;
-using Forum.Api.Common.Helpers;
-using Forum.Application.Posts.Commands.CreatePost;
+﻿using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
+using Forum.Application.Posts.Commands.UpdatePost;
 using Forum.Application.Posts.Queries.GetPost;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
@@ -9,7 +8,6 @@ using Forum.Data.Common.Errors;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Quic;
 using System.Security.Claims;
 
 namespace Forum.Api.Controllers;
@@ -28,26 +26,35 @@ public class PostsController : ApiController
     [HttpPost("")]
     public async Task<IActionResult> CreatePost(CreatePostRequest request)
     {
-        var userIdentity = User.Identity as ClaimsIdentity;
-        var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        ErrorOr<Guid> userIdResult = Guid.TryParse(authId, out var userId)
-                ? userId
-                : Errors.Authentication.InvalidGuid;
-
-        if (userIdResult.IsError && userIdResult.FirstError == Errors.Authentication.InvalidGuid)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status415UnsupportedMediaType,
-                title: userIdResult.FirstError.Description);
-        }
+        GetUserId(out Guid userId);
 
         var command = _mapper.Map<CreatePostCommand>((request, userId));
 
-        var createPostResult = await _mediator.Send(command);
+        var commandResult = await _mediator.Send(command);
 
-        return createPostResult.Match(
+        return commandResult.Match(
             post => Ok(_mapper.Map<PostResponse>(post)),
+            errors => Problem());
+    }
+
+    [HttpPatch("{postId:guid}")]
+    public async Task<IActionResult> UpdatePost(
+        [FromRoute] Guid postId,
+        [FromBody] UpdatePostRequest request)
+    {
+        GetUserId(out Guid userId);
+
+        var requestToMap = request with { Id = postId, UserId = userId };
+        var command = _mapper.Map<UpdatePostCommand>(requestToMap);
+        var commandResult = await _mediator.Send(command);
+
+        if (commandResult.IsError && commandResult.FirstError == Errors.Authentication.UnauthorizedAction)
+        {
+            return Unauthorized();
+        }
+
+        return commandResult.Match(
+            updated => NoContent(),
             errors => Problem(errors));
     }
 
@@ -56,9 +63,9 @@ public class PostsController : ApiController
     {
         var query = _mapper.Map<GetPostQuery>(postId);
 
-        var getPostQuery = await _mediator.Send(query);
+        var queryResult = await _mediator.Send(query);
 
-        return getPostQuery.Match(
+        return queryResult.Match(
             post => Ok(_mapper.Map<PostResponse>(post)),
             errors => Problem(errors));
     }
@@ -67,10 +74,10 @@ public class PostsController : ApiController
     public async Task<IActionResult> GetPosts(
         [FromQuery] GetPostsQueryParams queryParams)
     {
-        var request = _mapper.Map<GetPostsQuery>(queryParams);
-        var listPostsResult = await _mediator.Send(request);
+        var query = _mapper.Map<GetPostsQuery>(queryParams);
+        var queryResult = await _mediator.Send(query);
 
-        return listPostsResult.Match(
+        return queryResult.Match(
                posts =>
                {
                    var postResponseList = new PostResponseListNew(Posts: posts.Item1, PageInfo: posts.Item2);
@@ -83,25 +90,26 @@ public class PostsController : ApiController
     public async Task<IActionResult> DeletePost(
         [FromRoute] Guid postId)
     {
+        GetUserId(out Guid userId);
+
+        var command = _mapper.Map<DeletePostCommand>((postId, userId));
+        var commandResult = await _mediator.Send(command);
+
+        if (commandResult.IsError && commandResult.FirstError == Errors.Authentication.UnauthorizedAction)
+        {
+            return Unauthorized();
+        }
+
+        return commandResult.Match(
+            deleted => NoContent(),
+            errors => Problem(errors));
+    }
+
+    private void GetUserId(out Guid userId)
+    {
         var userIdentity = User.Identity as ClaimsIdentity;
         var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        ErrorOr<Guid> userIdResult = Guid.TryParse(authId, out var userId)
-                ? userId
-                : Errors.Authentication.InvalidGuid;
-        if (userIdResult.IsError)
-        {
-            return Problem(
-                statusCode: StatusCodes.Status415UnsupportedMediaType,
-                title: userIdResult.FirstError.Description);
-        }
-
-        var command = _mapper.Map<DeletePostCommand>((postId, userId));
-
-        var commandResult = await _mediator.Send(command);
-
-        return commandResult.Match(
-            deleted => Ok(StatusCodes.Status204NoContent),
-            errors => Problem(errors));
+        userId = Guid.Parse(authId!);
     }
 }

@@ -3,11 +3,6 @@ using Forum.Data.CommentAggregate;
 using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.PostAggregate.ValueObjects;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Infrastructure.Persistence.Repositories;
 
@@ -49,5 +44,16 @@ public class CommentRepository : ICommentRepository
     public async Task<IQueryable<Comment>> GetCommentsAsync()
     {
         return await Task.FromResult(_dbContext.Comments.AsQueryable());
+    }
+
+    public async Task<bool> CommentExistsAsync(CommentId commentId)
+    {
+        return await _dbContext.Comments.AnyAsync(c => c.Id == commentId);
+    }
+
+    public async Task UpdateAsync(Comment comment, CancellationToken cancellationToken)
+    {
+         _dbContext.Update(comment);
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

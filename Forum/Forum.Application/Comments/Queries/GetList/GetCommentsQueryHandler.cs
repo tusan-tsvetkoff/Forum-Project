@@ -88,7 +88,7 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
             var username = _authorRepository.GetByAuthorIdAsync(c.AuthorId).Result!.Username!; ;
             return new CommentResult(
                 c.Id.Value.ToString(),
-                c.Content,
+               c.Content,
                 new AuthorResponse(
                     c.AuthorId.Value,
                     username),

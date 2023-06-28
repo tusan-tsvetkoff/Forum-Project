@@ -1,5 +1,5 @@
-﻿using Forum.Data.TagAggregate;
-using Forum.Data.TagAggregate.ValueObjects;
+﻿using Forum.Data.TagEntity;
+using Forum.Data.TagEntity.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,7 +13,7 @@ public class TagConfigurations : IEntityTypeConfiguration<Tag>
         ConfigureTagsIndex(builder);
     }
 
-    private void ConfigureTagsIndex(EntityTypeBuilder<Tag> builder)
+    private static void ConfigureTagsIndex(EntityTypeBuilder<Tag> builder)
     {
         builder.HasIndex(tag => tag.Name)
             .IsUnique() // This will be interesting.

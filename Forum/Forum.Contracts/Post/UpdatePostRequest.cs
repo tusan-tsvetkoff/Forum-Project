@@ -10,4 +10,6 @@ namespace Forum.Contracts.Post;
      Guid Id,
      Guid UserId,
      string? NewTitle,
-     string? NewContent); // TODO: Also add tags here
+     string? NewContent,
+     string? Tag,
+     string? TagToRemove); // TODO: Also add tags here

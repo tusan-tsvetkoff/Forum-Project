@@ -2,7 +2,7 @@
 using Forum.Data.CommentAggregate;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate;
-using Forum.Data.TagAggregate;
+using Forum.Data.TagEntity;
 using Forum.Data.UserAggregate;
 using Forum.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;

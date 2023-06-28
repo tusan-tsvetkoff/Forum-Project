@@ -5,6 +5,7 @@ using Forum.Data.PostAggregate;
 using Forum.Data.UserAggregate.ValueObjects;
 using MediatR;
 using Forum.Data.Common.Errors;
+using Forum.Data.TagEntity;
 
 namespace Forum.Application.Posts.Commands.CreatePost;
 
@@ -24,18 +25,16 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
     public async Task<ErrorOr<Post>> Handle(CreatePostCommand command, CancellationToken cancellationToken)
     {
          // Get the author profile of the user
-         var userToAuthor = _userRepository.GetUserByIdAsync(UserId.Create(command.UserId));
+         var userToAuthor = await _userRepository.GetUserByIdAsync(UserId.Create(command.UserId));
 
         // Get the author profile of the user
-        var author = _authorRepository.GetByUserIdAsync(UserId.Create(userToAuthor.Result!.Id.Value));
-        string authorId = author.Result!.Id.Value;
+        var author = await _authorRepository.GetByUserIdAsync(UserId.Create(userToAuthor!.Id.Value));
 
         // Create the post with the author's ID
         var post = Post.Create(
             command.Title,
             command.Content,
-            AuthorId.Create(authorId));
-
+            AuthorId.Create(author!.Id.Value));
         await _postRepository.AddAsync(post);
 
         return post;

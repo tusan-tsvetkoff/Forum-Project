@@ -67,7 +67,7 @@ public class PostsController : ApiController
 
         return queryResult.Match(
             post => Ok(_mapper.Map<PostResponse>(post)),
-            errors => Problem(errors));
+            errors => Problem());
     }
 
     [HttpGet()]

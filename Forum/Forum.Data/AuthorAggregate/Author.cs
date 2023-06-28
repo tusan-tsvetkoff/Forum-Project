@@ -14,6 +14,7 @@ public sealed class Author : AggregateRoot<AuthorId, string>
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
     public string Username { get; private set; }
+    public string AvatarUrl { get; private set; }
     public UserId UserId { get; private set; }
     public IReadOnlyList<PostId> PostIds => _postIds.AsReadOnly();
     public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
@@ -51,6 +52,31 @@ public sealed class Author : AggregateRoot<AuthorId, string>
             lastName,
             username,
             userId);
+    }
+
+    public void UpdateProfile(
+        string? firstName,
+        string? lastName,
+        string avatarUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(firstName))
+        {
+            FirstName = firstName;
+        }
+        if (!string.IsNullOrWhiteSpace(lastName))
+        {
+            LastName = lastName;
+        }
+
+        if(!string.IsNullOrWhiteSpace(avatarUrl))
+        {
+            AvatarUrl = avatarUrl;
+        }
+    }
+
+    public void UpdateUsername(string username)
+    {
+        Username = username;
     }
 
     public void AddPostId(PostId postId)

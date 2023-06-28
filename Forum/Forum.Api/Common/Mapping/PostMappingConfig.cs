@@ -41,7 +41,8 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.AuthorId, src => src.AuthorId.Value.ToString());
+            .Map(dest => dest.AuthorId, src => src.AuthorId.Value.ToString())
+            .Map(dest => dest.Tags, src => src.Tags.Select(tag => tag.Name));
 
         config.NewConfig<Post, ListedPostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())

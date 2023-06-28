@@ -14,12 +14,14 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
     private readonly ICommentRepository _commentRepository;
     private readonly IAuthorRepository _authorRepository;
     private readonly IPostRepository _postRepository;
+    private readonly IUserRepository _userRepository;
     public DeleteCommentCommandHandler(
-            ICommentRepository commentRepository, IPostRepository postRepository, IAuthorRepository authorRepository)
+            ICommentRepository commentRepository, IPostRepository postRepository, IAuthorRepository authorRepository, IUserRepository userRepository)
     {
         _authorRepository = authorRepository;
         _postRepository = postRepository;
         _commentRepository = commentRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<ErrorOr<Deleted>> Handle(DeleteCommentCommand command, CancellationToken cancellationToken)
@@ -35,14 +37,17 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
             return Errors.Comment.NotFound;
         }
 
-        var author = await _authorRepository.GetByUserIdAsync(UserId.Create(command.UserId));
+        var userId = UserId.Create(command.UserId);
+
+        var author = await _authorRepository.GetByUserIdAsync(userId);
         if (author is null)
         {
             return Errors.Author.NotFound;
         }
 
-        // Check if requester is the owner of the comment
-        if(commentToDelete.AuthorId != author.Id)
+        // Check if requester is the owner of the comment or admin
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if(!user!.IsAdmin && commentToDelete.AuthorId != author.Id)
         {
             return Errors.Comment.NotOwner;
         }

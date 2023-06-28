@@ -14,8 +14,16 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
         ConfigureLikesValueObject(builder);
         ConfigureDislikesValueObject(builder);
         ConfigurePostCommentsTable(builder);
-        ConfigurePostTagsTable(builder);
         ConfigurePostIndexes(builder);
+        ConfigurePostTagsTable(builder);
+    }
+
+    private static void ConfigurePostTagsTable(EntityTypeBuilder<Post> builder)
+    {
+        builder.HasMany(p => p.Tags)
+            .WithMany();
+        builder.Navigation(p => p.Tags)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 
     private static void ConfigurePostIndexes(EntityTypeBuilder<Post> builder)
@@ -24,27 +32,6 @@ public class PostConfigurations : IEntityTypeConfiguration<Post>
             .HasDatabaseName("IX_Title");
     }
 
-    // Fuck this
-    private static void ConfigurePostTagsTable(EntityTypeBuilder<Post> builder)
-    {
-        builder.OwnsMany(p => p.TagIds, tb =>
-        {
-            tb.ToTable("PostTagIds");
-
-            tb.WithOwner().HasForeignKey("PostId");
-
-            tb.HasKey("Id");
-
-            tb.Property(t => t.Value)
-                .HasColumnName("TagId")
-                .ValueGeneratedNever();
-
-        });
-        builder.Metadata.FindNavigation(nameof(Post.TagIds))!
-            .SetPropertyAccessMode(PropertyAccessMode.Field);
-    }
-
-    // Jesus Fucking Christ.
     private static void ConfigurePostCommentsTable(EntityTypeBuilder<Post> builder)
     {
         builder.OwnsMany(p => p.CommentIds, cb =>

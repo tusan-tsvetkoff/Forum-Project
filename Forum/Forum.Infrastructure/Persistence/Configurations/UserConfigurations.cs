@@ -24,10 +24,8 @@ namespace Forum.Infrastructure.Persistence.Configurations
                 .IsUnique()
                 .HasDatabaseName("IX_Username");
 
-            // Might not be needed/working.
-            /*builder.HasIndex(u => u.Id)
-                .IsUnique()
-                .HasDatabaseName("IX_Id");*/
+            builder.HasIndex(u => u.IsAdmin)
+                .HasDatabaseName("IX_IsAdmin");
         }
 
         private static void ConfigureUsersTable(EntityTypeBuilder<User> builder)
@@ -56,9 +54,13 @@ namespace Forum.Infrastructure.Persistence.Configurations
             builder.Property(u => u.Username)
                 .HasMaxLength(32);
 
-            builder.Property(u => u.About)
-                .IsRequired(false)
-                .HasMaxLength(256);
+            builder.Property(u => u.IsAdmin)
+                .HasDefaultValue(false);
+
+            builder.Property(u => u.PhoneNumber)
+                .HasMaxLength(16)
+                .HasDefaultValue(null)
+                .IsRequired(false);
         }
     }
 }

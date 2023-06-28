@@ -1,5 +1,4 @@
 ﻿using Forum.Application.Users.Commands.Delete;
-using Forum.Application.Users.Commands.UpdateProfile;
 using Forum.Application.Users.Queries;
 using Forum.Contracts.Common;
 using Forum.Contracts.Post;
@@ -14,10 +13,6 @@ public class UserMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<(UpdateProfileRequest Request, Guid UserId), UpdateProfileCommand>()
-            .Map(dest => dest.UserId, src => src.UserId)
-            .Map(dest => dest, src => src.Request);
-
         config.NewConfig<Guid, DeleteUserCommand>()
             .Map(dest => dest.UserId, src => src);
 

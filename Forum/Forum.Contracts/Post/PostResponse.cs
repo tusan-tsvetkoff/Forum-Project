@@ -8,6 +8,7 @@ public record PostResponse(
      string AuthorId,
      string Title,
      string Content,
+     List<string> Tags,
      Likes Likes,
      Dislikes Dislikes,
      List<PostCommentResponse> Comments,

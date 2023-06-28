@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Forum.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class NthCreate : Migration
+    public partial class NeznamZaKoiPutVeche : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -34,7 +34,7 @@ namespace Forum.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AuthorId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -132,26 +132,6 @@ namespace Forum.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CommentHistory",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    CommentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CommentHistory", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CommentHistory_Comments_CommentId",
-                        column: x => x.CommentId,
-                        principalTable: "Comments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PostCommentIds",
                 columns: table => new
                 {
@@ -172,21 +152,25 @@ namespace Forum.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PostTagIds",
+                name: "PostTag",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     PostId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TagId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    TagsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PostTagIds", x => x.Id);
+                    table.PrimaryKey("PK_PostTag", x => new { x.PostId, x.TagsId });
                     table.ForeignKey(
-                        name: "FK_PostTagIds_Posts_PostId",
+                        name: "FK_PostTag_Posts_PostId",
                         column: x => x.PostId,
                         principalTable: "Posts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostTag_Tags_TagsId",
+                        column: x => x.TagsId,
+                        principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -208,11 +192,6 @@ namespace Forum.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CommentHistory_CommentId",
-                table: "CommentHistory",
-                column: "CommentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PostCommentIds_PostId",
                 table: "PostCommentIds",
                 column: "PostId");
@@ -223,9 +202,9 @@ namespace Forum.Infrastructure.Migrations
                 column: "Title");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostTagIds_PostId",
-                table: "PostTagIds",
-                column: "PostId");
+                name: "IX_PostTag_TagsId",
+                table: "PostTag",
+                column: "TagsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Name",
@@ -256,16 +235,13 @@ namespace Forum.Infrastructure.Migrations
                 name: "AuthorPostIds");
 
             migrationBuilder.DropTable(
-                name: "CommentHistory");
+                name: "Comments");
 
             migrationBuilder.DropTable(
                 name: "PostCommentIds");
 
             migrationBuilder.DropTable(
-                name: "PostTagIds");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
+                name: "PostTag");
 
             migrationBuilder.DropTable(
                 name: "Users");
@@ -274,10 +250,10 @@ namespace Forum.Infrastructure.Migrations
                 name: "Authors");
 
             migrationBuilder.DropTable(
-                name: "Comments");
+                name: "Posts");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "Tags");
         }
     }
 }

@@ -30,5 +30,9 @@ public static partial class Errors
         public static Error DeleteFailed => Error.Unexpected(
                 description: "User could not be deleted.",
                 code: "User.DeleteFailed");
+
+        public static Error UsernameExists => Error.Conflict(
+            description: "Username is already in use.",
+            code: "User.UsernameExists");
     }
 }

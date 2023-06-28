@@ -1,16 +1,12 @@
 ﻿using Forum.Data.Models.Identities;
 
-namespace Forum.Data.TagAggregate.ValueObjects;
+namespace Forum.Data.TagEntity.ValueObjects;
 
-public sealed class TagId : AggregateRootId<Guid>
+public sealed class TagId : EntityId<Guid>
 {
     private TagId(Guid value) : base(value)
     {
     }
-
-/*    private TagId() : base(Guid.Empty)
-    {
-    }*/
 
     public static TagId CreateUnique()
     {

@@ -84,6 +84,11 @@ public class AuthorConfigurations : IEntityTypeConfiguration<Author>
             .HasMaxLength(32)
             .IsRequired();
 
+        builder.Property(a => a.AvatarUrl)
+            .HasMaxLength(256)
+            .HasDefaultValue(null)
+            .IsRequired(false);
+
         builder.Property(a => a.UserId)
             .HasConversion(id => id.Value,
             value => UserId.Create(value));

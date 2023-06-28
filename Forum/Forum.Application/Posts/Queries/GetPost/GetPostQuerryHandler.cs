@@ -3,7 +3,7 @@ using Forum.Application.Common.Interfaces.Persistence;
 using Forum.Data.PostAggregate;
 using Forum.Data.PostAggregate.ValueObjects;
 using MediatR;
-
+using Forum.Data.Common.Errors;
 namespace Forum.Application.Posts.Queries.GetPost;
 
 public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<Post>>
@@ -17,6 +17,13 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<Post>>
 
     public async Task<ErrorOr<Post>> Handle(GetPostQuery query, CancellationToken cancellationToken)
     {
-        return await _postRepository.GetByIdAsync(PostId.Create(query.PostId));
+        var post = await _postRepository.GetByIdAsync(PostId.Create(query.PostId));
+
+        if (post is null)
+        {
+            return Errors.Post.NotFound;
+        }
+
+        return post;
     }
 }

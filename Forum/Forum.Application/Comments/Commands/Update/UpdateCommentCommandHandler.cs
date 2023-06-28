@@ -1,6 +1,5 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Post;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
@@ -9,13 +8,6 @@ using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate.ValueObjects;
 using Forum.Data.UserAggregate.ValueObjects;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Forum.Application.Comments.Commands.Update;
 
@@ -24,12 +16,14 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
     private readonly ICommentRepository _commentRepository;
     private readonly IAuthorRepository _authorRepository;
     private readonly IPostRepository _postRepository;
+    private readonly IUserRepository _userRepository;
 
-    public UpdateCommentCommandHandler(ICommentRepository commentRepository, IAuthorRepository authorRepository, IPostRepository postRepository)
+    public UpdateCommentCommandHandler(ICommentRepository commentRepository, IAuthorRepository authorRepository, IPostRepository postRepository, IUserRepository userRepository)
     {
         _commentRepository = commentRepository;
         _authorRepository = authorRepository;
         _postRepository = postRepository;
+        _userRepository = userRepository;
     }
     public async Task<ErrorOr<UpdateCommentResult>> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
     {
@@ -54,9 +48,11 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
               return Errors.Author.NotFound;
         }
         var authorId = AuthorId.Create(author.Id.Value);
-        // 3. Check if author is owner of the comment
+        // 3. Check if author is owner of the comment or is an admin who can edit any comment
         var comment = await _commentRepository.GetByIdAsync(CommentId.Create(request.Id));
-        if (comment.AuthorId != authorId)
+
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (!user!.IsAdmin && comment.AuthorId != authorId)
         {
             return Errors.Comment.NotOwner;
         }

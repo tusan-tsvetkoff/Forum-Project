@@ -12,7 +12,8 @@ public sealed class User : AggregateRoot<UserId, Guid>
     public string Username { get; private set; }
     public string Password { get; private set; } // <- Hashed (but too lazy to change the name)
     public DateTime CreatedDate { get; private set; }
-    public string About { get; private set; }
+    public bool IsAdmin { get; private set; } = false;
+    public string PhoneNumber { get; private set; }
 
     private User(
         string firstName,
@@ -54,37 +55,20 @@ public sealed class User : AggregateRoot<UserId, Guid>
         return user;
     }
 
-    public void UpdateProfile(
-        string firstName,
-        string lastName,
-        string username,
-        string password,
-        string about)
+    // Only for admins
+    public void UpdatePhoneNumber(string phoneNumber)
     {
-        if(!string.IsNullOrWhiteSpace(firstName))
-        {
-            FirstName = firstName;
-        }
+        PhoneNumber = phoneNumber;
+    }
 
-        if (!string.IsNullOrWhiteSpace(lastName))
-        {
-            LastName = lastName;
-        }
+    public void PromoteToAdmin()
+    {
+        IsAdmin = true;
+    }
 
-        if (!string.IsNullOrWhiteSpace(username))
-        {
-            Username = username;
-        }
-
-        if (!string.IsNullOrWhiteSpace(password))
-        {
-            Password = password;
-        }
-
-        if (!string.IsNullOrWhiteSpace(about))
-        {
-            About = about;
-        }
+    public void DemoteFromAdmin()
+    {
+        IsAdmin = false;
     }
 
 #pragma warning disable CS8618

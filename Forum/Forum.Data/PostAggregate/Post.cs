@@ -1,23 +1,20 @@
-﻿using ErrorOr;
-using Forum.Data.AuthorAggregate.ValueObjects;
-using Forum.Data.CommentAggregate;
+﻿using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate.ValueObjects;
 using Forum.Data.Models;
 using Forum.Data.PostAggregate.Events;
 using Forum.Data.PostAggregate.ValueObjects;
-using Forum.Data.TagAggregate;
-using Forum.Data.TagAggregate.ValueObjects;
+using Forum.Data.TagEntity;
 
 namespace Forum.Data.PostAggregate;
 
 public sealed class Post : AggregateRoot<PostId, Guid>
 {
     private readonly List<CommentId> _commentIds = new();
-    private readonly List<TagId> _tagIds= new();
+    private readonly List<Tag> _tags= new();
     public string Title { get; private set; }
     public string Content { get; private set; }
     public IReadOnlyList<CommentId> CommentIds => _commentIds.AsReadOnly();
-    public IReadOnlyList<TagId> TagIds => _tagIds.AsReadOnly();
+    public IReadOnlyList<Tag> Tags => _tags.AsReadOnly();
     public DateTime CreatedDateTime { get; private set; }
     public DateTime UpdatedDateTime { get; private set; }
     public Likes Likes { get; private set; }
@@ -79,6 +76,11 @@ public sealed class Post : AggregateRoot<PostId, Guid>
         UpdatedDateTime = DateTime.UtcNow;
     }
 
+    public void AddTag(Tag tag)
+    {
+        _tags.Add(tag);
+    }   
+
     public void IncrementLikes()
     {
         Likes = Likes.Increment();
@@ -87,5 +89,10 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public void IncrementDislikes()
     {
         Dislikes = Dislikes.Increment();
+    }
+
+    public void RemoveTag(Tag tag)
+    {
+        _tags.Remove(tag);
     }
 }

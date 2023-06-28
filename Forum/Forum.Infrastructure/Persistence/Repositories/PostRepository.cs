@@ -30,7 +30,9 @@ namespace Forum.Infrastructure.Persistence.Repositories
 
         public async Task<Post?> GetByIdAsync(PostId postId)
         {
-            return await _dbContext.Posts.FirstOrDefaultAsync(p => p.Id == postId);
+            return await _dbContext.Posts
+                .Include(p => p.Tags)
+                .FirstOrDefaultAsync(p => p.Id == postId);
         }
 
         public async Task<List<Post>> ListAsync(AuthorId authorId)

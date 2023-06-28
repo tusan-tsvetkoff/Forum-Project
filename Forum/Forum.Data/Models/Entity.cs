@@ -9,13 +9,16 @@ namespace Forum.Data.Models
     public abstract class Entity<TId> : IEquatable<Entity<TId>>, IHasDomainEvents
         where TId : ValueObject
     {
-        private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
+        private readonly List<IDomainEvent> _domainEvents = new ();
         public TId Id { get; protected set; }
         public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+#pragma warning disable S4136
         protected Entity(TId id)
         {
             Id = id;
         }
+#pragma warning restore S4136
 
         public override bool Equals(object? obj)
         {

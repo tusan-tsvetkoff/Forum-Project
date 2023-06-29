@@ -48,7 +48,8 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Timestamp, src => src.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
             .Map(dest => dest.EditedTimestamp, src => src.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"))
-            .Map(dest => dest.Comments, src => src.CommentIds.Count);
+            .Map(dest => dest.Comments, src => src.CommentIds.Count)
+            .Map(dest => dest.Tags, src => src.Tags.Select(tag => tag.Name));
 
         config.NewConfig<UpdatePostRequest, UpdatePostCommand>()
             .Map(dest => dest, src => src);

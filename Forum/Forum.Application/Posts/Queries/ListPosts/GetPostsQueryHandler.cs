@@ -5,6 +5,7 @@ using Forum.Contracts.Post;
 using Forum.Data.PostAggregate;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Forum.Application.Posts.Queries.ListPosts;
@@ -57,6 +58,7 @@ public class GetPostsQueryHandler :
         int pageSize = request.PageSize ?? 10;
 
         var posts = await postQuery
+            .Include(p => p.Tags)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
@@ -76,29 +78,32 @@ public class GetPostsQueryHandler :
             hasPreviousPage);
 
         // Serious refactoring needed here
-        List<ListedPostResponse> postResponseTasks = MapPostResponseList(posts);
+        List<ListedPostResponse> postResponseTasks = await MapPostResponseList(posts);
 
         return (postResponseTasks, pageInfo);
     }
 
-    private List<ListedPostResponse> MapPostResponseList(List<Post> posts)
+    private async Task<List<ListedPostResponse>> MapPostResponseList(List<Post> posts)
     {
-        return posts.Select(p =>
+        var tasks = posts.Select(async p =>
         {
-            var username = _authorRepository.GetByAuthorIdAsync(p.AuthorId)!.Result!.Username;
+            var author = await _authorRepository.GetByAuthorIdAsync(p.AuthorId)!;
             return new ListedPostResponse(
                 p.Id.Value.ToString(),
                 new AuthorResponse(
                     p.AuthorId.Value,
-                    username),
+                    author!.Username),
                 p.Title,
                 p.Content,
+                p.Tags.Select(t => t.Name).ToList(),
                 new Likes(p.Likes.Value),
                 new Dislikes(p.Dislikes.Value),
                 p.CommentIds.Count,
                 p.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"),
                 p.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"));
-        }).ToList();
+        });
+
+        return (await Task.WhenAll(tasks)).ToList();
     }
 
     private static void HasPrevAndOrNextPage(GetPostsQuery request, int postCount, out bool hasPreviousPage, out bool hasNextPage)

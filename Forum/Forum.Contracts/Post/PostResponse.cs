@@ -20,6 +20,7 @@ public record ListedPostResponse(
     AuthorResponse Author,
     string Title,
     string Content,
+    List<string> Tags,
     Likes Likes,
     Dislikes Dislikes,
     int Comments,
@@ -45,3 +46,4 @@ public record PostCommentResponse(
     string Content,
     string Author,
     string Timestamp);
+

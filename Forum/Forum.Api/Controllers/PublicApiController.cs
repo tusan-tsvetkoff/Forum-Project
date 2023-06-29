@@ -61,6 +61,7 @@ namespace Forum.Api.Controllers
 
             var queryResult = await _mediator.Send(query);
 
+
             return queryResult.Match(
                 posts =>
                 {

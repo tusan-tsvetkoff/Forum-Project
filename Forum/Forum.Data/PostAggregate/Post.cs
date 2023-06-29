@@ -79,6 +79,7 @@ public sealed class Post : AggregateRoot<PostId, Guid>
     public void AddTag(Tag tag)
     {
         _tags.Add(tag);
+        UpdatedDateTime = DateTime.UtcNow;
     }   
 
     public void IncrementLikes()

@@ -1,0 +1,136 @@
+﻿@page "/register"
+@using Forum.Contracts.Authentication;
+@inject HttpClient HttpClient
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Http.Headers;
+@using Microsoft.AspNetCore.Mvc;
+@inject IDialogService DialogService
+@using Forum.Server.Dialogs;
+
+<PageTitle>Register</PageTitle>
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" Label="First name" Required="true" RequiredError="First name is required!"
+                @bind-Value="@_registerFirstName" />
+                <MudTextField T="string" Label="Last name" Required="true" RequiredError="Last name is required!"
+                @bind-Value="@_registerLastName" />
+                <MudTextField T="string" Label="Username" Required="true" RequiredError="User name is required!"
+                @bind-Value="@_registerUsername" />
+                <MudTextField T="string" Label="Email" Required="true" RequiredError="Email is required!"
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                @bind-Value="@_registerEmail" />
+                <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                              InputType="InputType.Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                              RequiredError="Password is required!" />
+                <MudTextField T="string"
+                              Label="Password" HelperText="Repeat the password" InputType="InputType.Password"
+                              Validation="@(new Func<string, string>(PasswordMatch))"
+                @bind-Value="@_registerPassword" />
+                <div class="d-flex align-center justify-space-between">
+                    <MudCheckBox T="bool" Required="true" RequiredError="You must agree" Label="I agree!" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="HandleValidSubmit" Class="ml-auto">Register</MudButton>
+                </div>
+            </MudForm>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" OnClick="@(()=>form.Validate())">Validate</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" OnClick="@(()=>form.ResetAsync())" Class="mx-2">Reset</MudButton>
+            <MudButton Variant="Variant.Filled" DisableElevation="true" OnClick="@(()=>form.ResetValidation())">Reset Validation</MudButton>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">@($"Errors ({errors.Length})")</MudText>
+                @foreach (var error in errors)
+            {
+                <MudText Color="@Color.Error">@error</MudText>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private string? _registerEmail;
+    private string? _registerPassword;
+    private string? _registerUsername;
+    private string? _registerFirstName;
+    private string? _registerLastName;
+
+    bool success;
+    string[] errors = { };
+    private MudTextField<string> pwField1;
+    private MudForm form;
+
+    private async Task HandleValidSubmit()
+    {
+        // Create the registration request
+        var registerRequest = new RegisterRequest(
+            _registerFirstName,
+            _registerLastName,
+            _registerUsername,
+            _registerEmail,
+            _registerPassword
+        );
+
+        // Send the registration request to the backend API
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7050/auth/register", registerRequest);
+        // Get the token from the response
+
+
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Registration successful
+            var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
+            var token = authResult.Token;
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            OpenDialog();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            // Registration failed
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            errors = problemDetails.Errors.SelectMany(x => x.Value).ToArray();
+        }
+        else
+        {
+            // Registration failed
+            errors = new[] { "Something went wrong" };
+        }
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least 8 characters long";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+
+    private void OpenDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<RegisterDialog>("Success!", options);
+    }
+
+}

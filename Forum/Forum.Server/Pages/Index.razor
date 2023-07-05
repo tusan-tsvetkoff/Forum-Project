@@ -1,0 +1,91 @@
+﻿@page "/"
+@inject HttpClient HttpClient
+@using Forum.Contracts.Post;
+@using Forum.Contracts.Statistics;
+@using Forum.Data.UserAggregate;
+@using MudBlazor;
+@using MudBlazor.Extensions;
+@using System.IdentityModel.Tokens.Jwt;
+@using System.Net.Http.Headers;
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<MudContainer>
+    <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center" Class="mt-5">
+        <MudItem>
+            <MudPaper Class="p-6">
+                @if (IsAuthenticated)
+                {
+                    <!-- Render content for authenticated users -->
+                    <MudTypography Typo="Typo.h2">Welcome, @FirstName!</MudTypography>
+                    <!-- Render authenticated user-specific content here -->
+                }
+                else
+                {
+                    <!-- Render content for unauthenticated users -->
+                    <MudContainer>
+                        <MudPaper Elevation="4" Padding="16px">
+                            <MudText Typo="Typo.h2">Welcome to the Forum Platform!</MudText>
+                            <MudText Typo="Typo.body1">We have @UserCount registered users and @PostCount posts so far.</MudText>
+                            <MudText Typo="Typo.body1">Register or log in to access more features.</MudText>
+                        </MudPaper>
+                    </MudContainer>
+
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int UserCount { get; set; }
+    private int PostCount { get; set; }
+    private bool IsAuthenticated { get; set; }
+    private string FirstName { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ProcessAuthenticationAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessAuthenticationAsync()
+    {
+        // Fetch statistics (user count, post count) from the backend API
+
+        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/statistics");
+        if (response.IsSuccessStatusCode)
+        {
+            var statistics = await response.Content.ReadFromJsonAsync<StatisticsResponse>();
+            UserCount = statistics.TotalUsersCount;
+            PostCount = statistics.TotalPostsCount;
+        }
+        else
+        {
+            // Handle API error
+        }
+        // Check authentication status based on the presence of Authorization Bearer token
+        var token = await RetrieveToken();
+        IsAuthenticated = !string.IsNullOrEmpty(token);
+
+        if (IsAuthenticated)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+            FirstName = jsonToken.Claims.First(claim => claim.Type == "given_name").Value;
+
+            // Set the token in the authorization header for subsequent requests
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
+    }
+
+    private async Task<string> RetrieveToken()
+    {
+        return await JSRuntime.InvokeAsync<string>("localStorage.getItem", "autsshToken");
+    }
+}

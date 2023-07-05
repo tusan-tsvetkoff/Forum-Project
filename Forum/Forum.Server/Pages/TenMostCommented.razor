@@ -1,0 +1,87 @@
+﻿@inject HttpClient HttpClient
+@using Forum.Contracts.Post
+@page "/ten-most-commented"
+
+<MudTable Items="@Posts?.Posts" Hover="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Content</MudTh>
+        <MudTh>Likes</MudTh>
+        <MudTh>Dislikes</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ToggleDetails(context.Id))">
+                @(IsExpanded(context.Id) ? "Hide" : "Show") Details
+            </MudButton>
+        </MudTd>
+        <MudTd DataLabel="Title">@context.Title</MudTd>
+        <MudTd DataLabel="Content">@context.Content.Substring(0, Math.Min(context.Content.Length, 30))</MudTd>
+        <MudTd DataLabel="Likes">@context.Likes.Amount</MudTd>
+        <MudTd DataLabel="Dislikes">@context.Dislikes.Amount</MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+        @if (IsExpanded(context.Id))
+        {
+            <MudTr>
+                <td colspan="5">
+                    <MudCard Elevation="0">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6"><strong>@context.Title</strong></MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent Class="pa-0">
+                            <MudText Typo="Typo.body1">Content: @context.Content</MudText>
+                            <MudText Typo="Typo.body1">Likes: @context.Likes.Amount</MudText>
+                            <MudText Typo="Typo.body1">Dislikes: @context.Dislikes.Amount</MudText>
+                            <MudText Typo="Typo.body1">Comments: @context.Comments</MudText>
+                            <MudText Typo="Typo.body1">Posted at: @context.Timestamp</MudText>
+                            <MudText Typo="Typo.body1">Last edited at: @context.EditedTimestamp</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </td>
+            </MudTr>
+        }
+    </ChildRowContent>
+</MudTable>
+
+@code
+{
+    private PostResponseListNew Posts { get; set; }
+    private Dictionary<string, bool> ExpandedStates { get; set; } = new Dictionary<string, bool>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMostCommentedAsync();
+    }
+
+    private async Task GetMostCommentedAsync()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/posts/most-commented");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var postResponseList = await response.Content.ReadFromJsonAsync<PostResponseListNew>();
+            Posts = postResponseList;
+        }
+    }
+
+    private bool IsExpanded(string postId)
+    {
+        return ExpandedStates.ContainsKey(postId) && ExpandedStates[postId];
+    }
+
+    private void ToggleDetails(string postId)
+    {
+        if (ExpandedStates.ContainsKey(postId))
+        {
+            ExpandedStates[postId] = !ExpandedStates[postId];
+        }
+        else
+        {
+            ExpandedStates.Add(postId, true);
+        }
+    }
+}

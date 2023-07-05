@@ -8,10 +8,6 @@ public sealed class PostId : AggregateRootId<Guid>
     {
     }
 
-/*    private PostId() : base(Guid.Empty)
-    {
-    }*/
-
     public static PostId CreateUnique()
     {
         return new PostId(Guid.NewGuid());

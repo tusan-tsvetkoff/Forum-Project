@@ -104,5 +104,10 @@ namespace Forum.Infrastructure.Persistence.Repositories
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task<int> GetTotalPostsCountAsync()
+        {
+            return await _dbContext.Posts.CountAsync();
+        }
     }
 }

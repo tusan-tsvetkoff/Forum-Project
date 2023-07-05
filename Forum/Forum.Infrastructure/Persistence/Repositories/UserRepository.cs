@@ -63,5 +63,10 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             return _dbContext.Users;
         }
+
+        public async Task<int> GetTotalUsersCountAsync()
+        {
+            return await _dbContext.Users.CountAsync();
+        }
     }
 }

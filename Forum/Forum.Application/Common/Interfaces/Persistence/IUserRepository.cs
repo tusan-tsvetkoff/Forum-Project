@@ -18,4 +18,5 @@ public interface IUserRepository
     Task<User?> GetUserByUsernameAsyc(string username);
     IQueryable<User> GetAllUsersAsync();
     Task<bool> IsEmailUniqueAsync(string email);
+    Task<int> GetTotalUsersCountAsync();
 }

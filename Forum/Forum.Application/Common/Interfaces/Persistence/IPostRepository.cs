@@ -15,6 +15,7 @@ namespace Forum.Application.Common.Interfaces.Persistence
             int pageSize);
         Task<Post?> GetByIdAsync(PostId postId);
         IQueryable<Post> GetPosts();
+        Task<int> GetTotalPostsCountAsync();
         Task<List<Post>> ListAsync(AuthorId authorId);
         Task<bool> PostExistsAsync(PostId postId);
         Task UpdateAsync(Post post, CancellationToken cancellationToken);

@@ -1,0 +1,120 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations;
+@using Forum.Contracts.Authentication;
+@using System.Net.Http.Headers;
+@using Forum.Server.Dialogs;
+@using Microsoft.AspNetCore.Mvc;
+@using System.Text.RegularExpressions;
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
+
+<PageTitle>Login</PageTitle>
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" Label="Email" 
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
+                @bind-Value="@_loginEmail" />
+                <MudTextField T="string"
+                              Label="Password" HelperText="Enter your password" InputType="InputType.Password"
+                @bind-Value="@_loginPassword" />
+                <div class="d-flex align-center justify-space-between">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleValidSubmit" Class="ml-auto">Login</MudButton>
+                </div>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">@($"Errors ({errors.Length})")</MudText>
+                @foreach (var error in errors)
+            {
+                <MudText Color="@Color.Error">@error</MudText>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    private string? _loginEmail;
+    private string? _loginPassword;
+
+    bool success;
+    string[] errors = { };
+    private MudTextField<string> pwField1;
+    private MudForm form;
+
+    private async Task HandleValidSubmit()
+    {
+        // Create the registration request
+        var loginRequest = new LoginRequest(
+            _loginEmail!,
+            _loginPassword!
+        );
+
+        // Send the registration request to the backend API
+        var response = await HttpClient.PostAsJsonAsync("https://localhost:7050/auth/login", loginRequest);
+        // Get the token from the response
+
+
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Registration successful
+            var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
+            var token = authResult.Token;
+            await StoreToken(token);
+            OpenDialog();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            // Registration failed
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            errors = problemDetails.Errors.SelectMany(x => x.Value).ToArray();
+        }
+        else
+        {
+            // Registration failed
+            errors = new[] { "Something went wrong" };
+        }
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least 8 characters long";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+
+    private void OpenDialog()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<RegisterDialog>("Success!", options);
+    }
+
+    private async Task StoreToken(string token)
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+    }
+
+}

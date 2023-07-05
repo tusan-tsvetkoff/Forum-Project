@@ -3,20 +3,39 @@ using Forum.Application;
 using Forum.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
-{
-    builder.Services
-        .AddPresentation()
-        .AddApplication()
-        .AddInfrastructure(builder.Configuration);
-}
+
+builder.Services
+    .AddPresentation()
+    .AddApplication()
+    .AddInfrastructure(builder.Configuration)
+    .AddMyCors();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/error");
-
-    app.UseHttpsRedirection();
-    app.UseAuthentication();
-    app.UseAuthorization();
-    app.MapControllers();
-    app.Run();
+    app.UseHsts();
 }
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseCors("CorsPolicy");
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapRazorPages();
+});
+
+app.Run();

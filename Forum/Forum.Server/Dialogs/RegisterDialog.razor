@@ -1,0 +1,29 @@
+﻿@using Forum.Server.Pages;
+@inject NavigationManager NavigationManager;
+
+<MudDialogProvider FullWidth="true"
+                   MaxWidth="MaxWidth.ExtraSmall"
+                   DisableBackdropClick="true"
+                   NoHeader="false"
+                   Position="DialogPosition.Center"
+                   CloseOnEscapeKey="true" />
+
+<MudDialog>
+    <DialogContent>
+        You have successfully registered!
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="NaviateToHomePage">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    void NaviateToHomePage()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

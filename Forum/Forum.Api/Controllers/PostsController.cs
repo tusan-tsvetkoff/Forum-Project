@@ -1,4 +1,5 @@
-﻿using Forum.Application.Posts.Commands.CreatePost;
+﻿using AspNetCore.Hateoas.Models;
+using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Commands.UpdatePost;
 using Forum.Application.Posts.Queries.GetPost;
@@ -8,7 +9,9 @@ using Forum.Data.Common.Errors;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using System.Security.Claims;
+using System.Web.Http.Controllers;
 
 namespace Forum.Api.Controllers;
 
@@ -17,10 +20,12 @@ public class PostsController : ApiController
 {
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    public PostsController(IMapper mapper, IMediator mediator)
+    private readonly IUrlHelperFactory _urlHelperFactory;
+    public PostsController(IMapper mapper, IMediator mediator, IUrlHelperFactory urlHelperFactory)
     {
         _mapper = mapper;
         _mediator = mediator;
+        _urlHelperFactory = urlHelperFactory;
     }
 
     [HttpPost("")]
@@ -58,15 +63,17 @@ public class PostsController : ApiController
             errors => Problem(errors));
     }
 
-    [HttpGet("{postId:guid}")]
+    [HttpGet("{postId:guid}", Name ="GetPost")]
     public async Task<IActionResult> GetPost([FromRoute] Guid postId)
     {
         var query = _mapper.Map<GetPostQuery>(postId);
 
         var queryResult = await _mediator.Send(query);
 
+        
+
         return queryResult.Match(
-            post => Ok(_mapper.Map<PostResponse>(post)),
+            post => Ok(post),
             errors => Problem());
     }
 

@@ -2,6 +2,8 @@
 using Forum.Application.Users.Commands.Delete;
 using Forum.Application.Users.Commands.Update;
 using Forum.Application.Users.Queries;
+using Forum.Application.Users.Queries.GetUser;
+using Forum.Contracts.Post;
 using Forum.Contracts.User;
 using Forum.Data.Common.Errors;
 using MapsterMapper;
@@ -50,7 +52,7 @@ public class UsersApiController : ApiController
     {
         GetUserId(out Guid authUserId);
 
-        if(userId != authUserId)
+        if (userId != authUserId)
         {
             return Unauthorized();
         }
@@ -77,12 +79,25 @@ public class UsersApiController : ApiController
                users =>
                {
                    var userResponseList = users.Item1.Select(u => _mapper.Map<UserResponse>(u)).ToList();
-                   var resultTuple = new UserResponseList(Users: userResponseList,PageInfo: users.Item2);
+                   var resultTuple = new UserResponseList(Users: userResponseList, PageInfo: users.Item2);
                    return Ok(resultTuple);
                },
                errors => Problem());
     }
 
+    [HttpGet("{authorId}")]
+    public async Task<IActionResult> GetAuthor(string authorId)
+    {
+
+        var request = new GetAuthorRequest(authorId);
+        var query = _mapper.Map<GetAuthorQuery>(request);
+
+        var result = await _mediator.Send(query);
+
+        return result.Match(
+                       author => Ok(_mapper.Map<AuthorResponse>(author)),
+                                  errors => Problem());
+    }
 
     private void GetUserId(out Guid userId)
     {

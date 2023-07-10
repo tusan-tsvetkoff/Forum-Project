@@ -1,27 +1,54 @@
-﻿<MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
+﻿@using Forum.Server.Common.Interfaces;
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject ITokenStorageService TokenStorageService
+
+<MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
     <MudNavMenu Class="mud-width-full">
         <MudText Typo="Typo.h5" Class="px-5">Mystery Forum</MudText>
         <MudDivider Class="my-2" />
         <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-        <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
-        <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+        @if (IsLoggedIn)
+        {
+            <MudNavLink Icon="@Icons.Material.Filled.Logout" @onclick="@(async () => await LogoutAsync())">Logout</MudNavLink>
+        }
+        else
+        {
+            <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+            <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+        })
     </MudNavMenu>
 </MudPaper>
-
 <MudPaper Width="250px" Class="d-inline-flex py-3" Elevation="0">
     <MudNavMenu Class="mud-width-full">
         <MudText Typo="Typo.h6" Class="px-4">Explore</MudText>
         <MudDivider Class="my-2" />
-        <MudNavLink Href="/ten-most-commented" Icon="@Icons.Material.Filled.Dashboard">Most Commented Posts</MudNavLink>
-        <MudNavGroup Title="Level 0" Icon="@Icons.Material.Filled.Settings" Expanded="true">
-            <MudNavGroup Title="Level 1" Icon="@Icons.Material.Filled.AdminPanelSettings" Expanded="true">
-                <MudNavGroup Title="Level 2" Icon="@Icons.Material.Filled.People" Expanded="true">
-                    <MudNavGroup Title="Level 3" Icon="@Icons.Material.Filled.Lock" Expanded="true">
-                        <MudNavLink Href="/delete" Icon="@Icons.Material.Filled.DeleteForever">Delete Password</MudNavLink>
-                    </MudNavGroup>
-                </MudNavGroup>
-            </MudNavGroup>
+        <MudNavGroup Title="Posts" Icon="@Icons.Material.Filled.Forum" Expanded="true">
+            <MudNavLink Href="/ten-most-commented" Icon="@Icons.Material.Filled.Forum">Most Commented Posts</MudNavLink>
         </MudNavGroup>
         <MudNavLink Href="/billing" Icon="@Icons.Material.Filled.Receipt">Billing</MudNavLink>
     </MudNavMenu>
 </MudPaper>
+
+
+@code {
+
+    private bool IsLoggedIn { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (await TokenStorageService.RetrieveToken() is not null) IsLoggedIn = true;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LogoutAsync()
+    {
+        await TokenStorageService.RemoveToken();
+        IsLoggedIn = false;
+        NavigationManager.NavigateTo("/");
+    }
+
+}

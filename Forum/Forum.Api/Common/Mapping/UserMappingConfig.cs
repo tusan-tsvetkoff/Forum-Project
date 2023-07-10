@@ -39,5 +39,6 @@ public class UserMappingConfig : IRegister
         config.NewConfig<Author, AuthorResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
             .Map(dest => dest.Username, src => src.Username);
+
     }
 }

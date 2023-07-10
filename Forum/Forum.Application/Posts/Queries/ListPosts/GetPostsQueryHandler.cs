@@ -22,6 +22,7 @@ public class GetPostsQueryHandler :
         _postRepository = postRepository;
         _authorRepository = authorRepository;
     }
+
     public async Task<ErrorOr<(List<ListedPostResponse>, PageInfo)>> Handle(GetPostsQuery request, CancellationToken cancellationToken)
     {
         var postQuery = _postRepository.GetPosts();
@@ -90,17 +91,17 @@ public class GetPostsQueryHandler :
 
         foreach (var p in posts)
         {
-            var author = await _authorRepository.GetByAuthorIdAsync(p.AuthorId);
+            var author = await _authorRepository.GetByAuthorIdAsync(p.AuthorId)!;
                 var listedPostResponse = new ListedPostResponse(
                     p.Id.Value.ToString(),
                     new AuthorResponse(
                         p.AuthorId.Value,
-                        author.Username),
+                        author!.Username),
                     p.Title,
                     p.Content,
                     p.Tags.Select(t => t.Name).ToList(),
-                    new Likes(p.Likes.Value),
-                    new Dislikes(p.Dislikes.Value),
+                    new LikesResponse(p.Likes.Value),
+                    new DislikesResponse(p.Dislikes.Value),
                     p.CommentIds.Count,
                     p.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"),
                     p.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"));

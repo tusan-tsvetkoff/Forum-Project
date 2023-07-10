@@ -19,6 +19,7 @@ public class UserStatisticsServices : IUserStatisticsServices
     }
     public async Task<int> GetTotalUsersCountAsync()
     {
+
         return await _userRepository.GetTotalUsersCountAsync();
     }
 }

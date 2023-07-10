@@ -1,4 +1,5 @@
-﻿using Forum.Application.Posts.Commands.CreatePost;
+﻿using AspNetCore.Hateoas.Models;
+using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Commands.UpdatePost;
 using Forum.Application.Posts.Queries.GetPost;
@@ -28,7 +29,7 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.SortOrder, src => src.SortOrder)
             .Map(dest => dest.Username, src => src.Username);
 
-        config.NewConfig<Post, (Likes, Dislikes)>()
+        config.NewConfig<Post, (LikesResponse, DislikesResponse)>()
             .Map(dest => dest.Item1, src => src.Likes.Value)
             .Map(dest => dest.Item2, src => src.Dislikes.Value);
 
@@ -41,7 +42,6 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<Post, PostResponse>()
             .Map(dest => dest.Id, src => src.Id.Value.ToString())
-            .Map(dest => dest.AuthorId, src => src.AuthorId.Value.ToString())
             .Map(dest => dest.Tags, src => src.Tags.Select(tag => tag.Name));
 
         config.NewConfig<Post, ListedPostResponse>()

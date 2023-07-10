@@ -19,7 +19,8 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
     private readonly IPostRepository _postRepository;
 
     public GetCommentsQueryHandler(ICommentRepository commentRepository,
-                                   IAuthorRepository authorRepository, IPostRepository postRepository)
+                                   IAuthorRepository authorRepository,
+                                   IPostRepository postRepository)
     {
         _postRepository = postRepository;
         _commentRepository = commentRepository;
@@ -85,7 +86,7 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
     {
         return comments.Select(c =>
         {
-            var username = _authorRepository.GetByAuthorIdAsync(c.AuthorId).Result!.Username!; ;
+            var username = _authorRepository.GetByAuthorIdAsync(c.AuthorId)!.Result!.Username!;
             return new CommentResult(
                 c.Id.Value.ToString(),
                c.Content,

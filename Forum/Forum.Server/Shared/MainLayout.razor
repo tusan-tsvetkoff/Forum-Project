@@ -1,5 +1,10 @@
 ﻿@inherits LayoutComponentBase
+@using Forum.Server.Common.Interfaces;
 @using MudBlazor.Components;
+@using System.IdentityModel.Tokens.Jwt;
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject ITokenStorageService TokenStorageService
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -8,7 +13,39 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Hello</MudText>
+        <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">@FirstName</MudText>
         <MudSpacer />
+        @if (IsLoggedIn)
+        {
+            <MudButton Class="mr-2" @onclick="@(async () => await LogoutAsync())"
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.Logout"
+                       Color="Color.Inherit"
+                       Style="text-transform:fullsize-kana">
+                Logout
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Href="/register"
+                       Class="s-4"
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.PersonAdd"
+                       Color="Color.Inherit"
+                       Style="text-transform:fullsize-kana">
+                Register
+            </MudButton>
+            <MudText Class="pointer-events-none mx-2">or</MudText>
+            <MudButton Href="/login"
+                       Class="s-4 mr-2"
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.Login"
+                       Color="Color.Inherit"
+                       Style="text-transform:fullsize-kana">
+                Login
+            </MudButton>
+        }
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/Tusankata/Forum-Project" Target="_blank" />
     </MudAppBar>
     <MudDrawer @bind-Open="@open" Elevation="1">
@@ -21,10 +58,33 @@
     </MudMainContent>
 </MudLayout>
 @code {
+    bool IsLoggedIn { get; set; } = false;
     bool open = false;
+    string FirstName { get; set; }
 
     void ToggleDrawer()
     {
         open = !open;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (await TokenStorageService.RetrieveToken() is string token)
+            {
+                IsLoggedIn = true;
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+                FirstName = jsonToken!.Claims.First(claim => claim.Type == "given_name").Value;
+            }
+            StateHasChanged();
+        }
+    }
+    private async Task LogoutAsync()
+    {
+        await TokenStorageService.RemoveToken();
+        IsLoggedIn = false;
+        NavigationManager.NavigateTo("/");
     }
 }

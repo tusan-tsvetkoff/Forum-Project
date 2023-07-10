@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Forum.Contracts", "Forum.Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Forum.Infrastructure", "Forum.Infrastructure\Forum.Infrastructure.csproj", "{70EE2654-56B8-46D5-A0ED-A15262DAC6B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forum.Server", "Forum.Server\Forum.Server.csproj", "{150344ED-96E4-4697-91AA-35E24D5340F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Forum.Server", "Forum.Server\Forum.Server.csproj", "{150344ED-96E4-4697-91AA-35E24D5340F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

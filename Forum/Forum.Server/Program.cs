@@ -1,7 +1,5 @@
-using Forum.Application.Common.Interfaces.Services;
-using Forum.Application.Services;
+using Forum.Server.Common.Interfaces;
 using Forum.Server.Data;
-using Microsoft.JSInterop;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddMudServices();
+
 // Register the HttpClient in the IOC
 builder.Services.AddHttpClient();
 var app = builder.Build();

@@ -4,9 +4,12 @@
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using System.Net.Http.Headers;
+@using Forum.Server.Common.Interfaces;
 @using Microsoft.AspNetCore.Mvc;
 @inject IDialogService DialogService
 @using Forum.Server.Dialogs;
+@inject ITokenStorageService TokenStorageService
+
 
 <PageTitle>Register</PageTitle>
 <MudGrid>
@@ -88,13 +91,21 @@
             var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
             var token = authResult.Token;
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            await TokenStorageService.StoreToken(token);
             OpenDialog();
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
             // Registration failed
             var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-            errors = problemDetails.Errors.SelectMany(x => x.Value).ToArray();
+            errors = problemDetails!.Errors.SelectMany(x => x.Value).ToArray();
+        }
+        else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            // Registration failed
+            
+            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+            errors = problemDetails!.Errors.SelectMany(x => x.Value).ToArray();
         }
         else
         {
@@ -132,5 +143,4 @@
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<RegisterDialog>("Success!", options);
     }
-
 }

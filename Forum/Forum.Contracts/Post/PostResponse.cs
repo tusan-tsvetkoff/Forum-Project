@@ -5,15 +5,20 @@ namespace Forum.Contracts.Post;
 
 public record PostResponse(
      string Id,
-     string AuthorId,
+     AuthorResponse Author,
      string Title,
      string Content,
      List<string> Tags,
-     Likes Likes,
-     Dislikes Dislikes,
+     LikesResponse Likes,
+     DislikesResponse Dislikes,
      List<PostCommentResponse> Comments,
      DateTime CreatedDateTime,
      DateTime UpdatedDateTime);
+
+public record LinkResponse(
+    string Self,
+    string Rel,
+    string Method);
 
 public record ListedPostResponse(
     string Id,
@@ -21,8 +26,8 @@ public record ListedPostResponse(
     string Title,
     string Content,
     List<string> Tags,
-    Likes Likes,
-    Dislikes Dislikes,
+    LikesResponse Likes,
+    DislikesResponse Dislikes,
     int Comments,
     string Timestamp,
     string EditedTimestamp);
@@ -31,10 +36,10 @@ public record AuthorResponse(
     string Id,
     string Username);
 
-public record Likes(
+public record LikesResponse(
     int Amount);
 
-public record Dislikes(
+public record DislikesResponse(
     int Amount);
 
 public record PostResponseListNew(
@@ -46,4 +51,3 @@ public record PostCommentResponse(
     string Content,
     string Author,
     string Timestamp);
-

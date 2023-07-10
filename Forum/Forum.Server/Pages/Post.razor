@@ -1,0 +1,169 @@
+﻿@page "/post/{postId:guid}"
+@using Forum.Contracts.Comment;
+@using Forum.Contracts.Post;
+@using Forum.Server.Common.Interfaces;
+@using System.Net.Http.Headers;
+@inject HttpClient HttpClient
+@inject ITokenStorageService TokenStorageService
+@inject NavigationManager NavigationManager
+
+<style>
+    .comment-list {
+        margin-top: 13px;
+    }
+
+    .comment {
+        border-bottom: 1px solid #ccc;
+        padding: 8px 0;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+
+    .comment-author {
+        font-weight: bold;
+    }
+
+    .comment-date {
+        color: #888;
+    }
+
+    .textarea-field textarea {
+        height: 150px;
+        width: 150px;
+        resize: vertical;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Large">
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h3">@PostTitle</MudText>
+                <MudText Typo="Typo.overline">/@PostAuthor</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.body1" Class="mt-n6">@PostContent</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Default" />
+            <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" />
+            <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+            <MudNavLink Disabled="true" Icon="@Icons.Material.Filled.Comment">
+                @Comments?.Count Comments
+            </MudNavLink>
+        </MudCardActions>
+    </MudCard>
+</MudContainer>
+
+<MudContainer>
+    <MudPaper>
+        <MudTextField Class="mx-2 mb-1 textarea-field" Lines="5" Counter="250" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" @bind-Value="newComment" Label="Add a comment" Variant="Variant.Text" />
+        <div class="button-container">
+            <MudButton Color="Color.Primary" Class="mt-1 mb-2 mr-1" Variant="Variant.Filled" @onclick="()=> AddComment(postId)">Add Comment</MudButton>
+        </div>
+    </MudPaper>
+</MudContainer>
+<!-- Comments Section -->
+<MudContainer Class="mt-2">
+    <MudCard>
+        <MudCardContent>
+            <div class="comment-list">
+                @if (Comments is null)
+                {
+                    <h3>No comments yet!</h3>
+                }
+                else
+                {
+                    foreach (var comment in Comments.OrderByDescending(c => c.Timestamp))
+                    {
+                        <div class="comment">
+                            <div class="comment-header">
+                                <span class="comment-author">@comment.Author</span>
+                                <span class="comment-date">@comment.Timestamp</span>
+                            </div>
+                            <div class="comment-body">@comment.Content</div>
+                        </div>
+                    }
+                }
+
+            </div>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+
+
+@code {
+    private List<PostCommentResponse> Comments = new();
+
+    private string PostContent { get; set; }
+    private string PostTitle { get; set; }
+    private string PostAuthor { get; set; }
+
+    private string newComment;
+
+    [Parameter]
+    public Guid postId { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadPostData();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadPostData()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.GetAsync($"https://localhost:7050/api/posts/{postId}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var post = await response.Content.ReadFromJsonAsync<PostResponse>();
+            Comments = post.Comments;
+            PostContent = post.Content;
+            PostTitle = post.Title;
+            PostAuthor = post.Author.Username;
+        }
+    }
+
+    // TODO: Add Comments
+    private async Task AddComment(Guid postId)
+    {
+        var request = new CreateCommentRequest(newComment);
+
+        var response = await HttpClient.PostAsJsonAsync($"https://localhost:7050/api/posts/{postId}/comments", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var comment = await response.Content.ReadFromJsonAsync<CommentResponse>();
+            newComment = string.Empty;
+            await LoadPostData();
+        }
+    }
+
+    private IEnumerable<string> MaxCharacters(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 250 < ch?.Length)
+            yield return "Max 250 characters";
+    }
+}

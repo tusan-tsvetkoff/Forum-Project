@@ -2,7 +2,6 @@
 using Forum.Application.Authentication.Common;
 using Forum.Application.Common.Interfaces.Authentication;
 using Forum.Application.Common.Interfaces.Persistence;
-using Forum.Data.Common.Errors;
 using Forum.Data.UserAggregate;
 using MediatR;
 
@@ -21,16 +20,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ErrorOr<A
         _passwordHasher = passwordHasher;
     }
 
+    
     public async Task<ErrorOr<AuthenticationResult>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
-        // 1. Checking if the email is unique in the system or not.
-        /*if (await _userRepository.GetUserByEmailAsync(command.Email) is not null)
-        {
-            return Errors.User.DuplicateEmail;
-        }*/
-
-        // 2.Creating a user (generating a unique ID) & Persisting to DB(in-memory for now).
-        // 2.1 Hash the password before persisting to DB.
         var hashedPassword = _passwordHasher.HashPassword(command.Password);
 
         var user = User.Create(

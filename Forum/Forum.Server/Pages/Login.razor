@@ -2,19 +2,19 @@
 @using System.ComponentModel.DataAnnotations;
 @using Forum.Contracts.Authentication;
 @using System.Net.Http.Headers;
+@using Forum.Server.Common.Interfaces;
 @using Forum.Server.Dialogs;
 @using Microsoft.AspNetCore.Mvc;
 @using System.Text.RegularExpressions;
 @inject HttpClient HttpClient
-@inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
-
+@inject ITokenStorageService TokenStorageService
 <PageTitle>Login</PageTitle>
 <MudGrid>
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
             <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-                <MudTextField T="string" Label="Email" 
+                <MudTextField T="string" Label="Email"
                               Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
                 @bind-Value="@_loginEmail" />
                 <MudTextField T="string"
@@ -59,14 +59,12 @@
         var response = await HttpClient.PostAsJsonAsync("https://localhost:7050/auth/login", loginRequest);
         // Get the token from the response
 
-
-
         if (response.IsSuccessStatusCode)
         {
             // Registration successful
             var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
             var token = authResult.Token;
-            await StoreToken(token);
+            await TokenStorageService.StoreToken(token);
             OpenDialog();
         }
         else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
@@ -111,10 +109,4 @@
         var options = new DialogOptions { CloseOnEscapeKey = true };
         DialogService.Show<RegisterDialog>("Success!", options);
     }
-
-    private async Task StoreToken(string token)
-    {
-        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-    }
-
 }

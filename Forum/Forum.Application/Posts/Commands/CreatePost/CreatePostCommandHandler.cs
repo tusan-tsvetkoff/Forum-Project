@@ -14,12 +14,14 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
     private readonly IPostRepository _postRepository;
     private readonly IUserRepository _userRepository;
     private readonly IAuthorRepository _authorRepository;
+    private readonly ITagRepository _tagRepository;
 
-    public CreatePostCommandHandler(IPostRepository postRepository, IUserRepository userRepository, IAuthorRepository authorRepository)
+    public CreatePostCommandHandler(IPostRepository postRepository, IUserRepository userRepository, IAuthorRepository authorRepository, ITagRepository tagRepository)
     {
         _postRepository = postRepository;
         _userRepository = userRepository;
         _authorRepository = authorRepository;
+        _tagRepository = tagRepository;
     }
 
     public async Task<ErrorOr<Post>> Handle(CreatePostCommand command, CancellationToken cancellationToken)
@@ -36,6 +38,13 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
             command.Content,
             AuthorId.Create(author!.Id.Value));
         await _postRepository.AddAsync(post);
+
+        // Add the tags to the post
+        foreach (var tag in command.Tags)
+        {
+            var tagEntity = await _tagRepository.GetTagByNameAsync(tag);
+            post.AddTag(tagEntity!);
+        }
 
         return post;
     }

@@ -1,5 +1,6 @@
 ﻿using Forum.Server.Common.Interfaces;
 using Microsoft.JSInterop;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Forum.Server.Data;
 
@@ -25,5 +26,19 @@ public class TokenStorageService : ITokenStorageService
     public async Task RemoveToken()
     {
         await _jsRuntime.InvokeAsync<string>("localStorage.removeItem", "authToken");
+    }
+
+    public async Task<bool> CheckTokenExpiry()
+    {
+        var token = await RetrieveToken();
+
+        if (token is null)
+        {
+            return true;
+        }
+
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+
+        return jwt.ValidTo < DateTime.UtcNow;
     }
 }

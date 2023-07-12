@@ -5,4 +5,5 @@ public interface ITokenStorageService
     Task StoreToken(string token);
     Task RemoveToken();
     Task<string> RetrieveToken();
+    Task<bool> CheckTokenExpiry();
 }

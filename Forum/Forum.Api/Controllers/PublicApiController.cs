@@ -1,5 +1,7 @@
 ﻿using Forum.Application.Posts.Queries.ListPosts;
+using Forum.Application.Public.Queries.GetTags;
 using Forum.Application.Public.Statistics.Queries;
+using Forum.Contracts.Common;
 using Forum.Contracts.Post;
 using MapsterMapper;
 using MediatR;
@@ -83,5 +85,17 @@ public class PublicApiController : ApiController
         return queryResult.Match(
                 statistics => Ok(statistics),
                 errors => Problem());
+    }
+
+    [HttpGet("tags")]
+    public async Task<IActionResult> GetTags()
+    {
+        var query = new GetTagsQuery();
+
+        var queryResult = await _mediator.Send(query);
+
+        return queryResult.Match(
+                       tags => Ok(tags.Select(t => _mapper.Map<TagsResponse>(t))),
+                       errors => Problem());
     }
 }

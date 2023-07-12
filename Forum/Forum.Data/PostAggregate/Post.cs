@@ -53,7 +53,7 @@ public sealed class Post : AggregateRoot<PostId, Guid>
             content,
             DateTime.UtcNow,
             authorId);
-
+        
         post.AddDomainEvent(new PostCreated(post));
 
         return post;

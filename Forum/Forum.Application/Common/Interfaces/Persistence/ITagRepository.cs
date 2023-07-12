@@ -9,5 +9,6 @@ public interface ITagRepository
     Task<bool> Exists(string tagName);
     Task<Tag?> GetTagByIdAsync(TagId tagId);
     Task<Tag?> GetTagByNameAsync(string? name);
+    Task<List<Tag>> GetTagsAsync();
     Task UpdateAsync(Tag tag); // probably not needed
 }

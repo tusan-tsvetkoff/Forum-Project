@@ -48,7 +48,7 @@
         <MudCardHeader>
             <CardHeaderContent>
                 <MudText Typo="Typo.h3">@PostTitle</MudText>
-                <MudText Typo="Typo.overline">/@PostAuthor</MudText>
+                <MudText Typo="Typo.overline">Posted by u/@PostAuthor @TimeAgo(PostedDate)</MudText>
             </CardHeaderContent>
         </MudCardHeader>
         <MudCardContent>
@@ -67,7 +67,13 @@
 
 <MudContainer>
     <MudPaper>
-        <MudTextField Class="mx-2 mb-1 textarea-field" Lines="5" Counter="250" Immediate="true" Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))" @bind-Value="newComment" Label="Add a comment" Variant="Variant.Text" />
+        <MudTextField Class="mx-2 mb-1 textarea-field"
+                      Lines="5"
+                      Counter="250"
+                      Immediate="true"
+                      Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))"
+        @bind-Value="newComment"
+                      Label="Add a comment" Variant="Variant.Text" />
         <div class="button-container">
             <MudButton Color="Color.Primary" Class="mt-1 mb-2 mr-1" Variant="Variant.Filled" @onclick="()=> AddComment(postId)">Add Comment</MudButton>
         </div>
@@ -109,8 +115,10 @@
     private string PostContent { get; set; }
     private string PostTitle { get; set; }
     private string PostAuthor { get; set; }
+    private DateTimeOffset PostedDate { get; set; }
 
     private string newComment;
+    private int timeAgo;
 
     [Parameter]
     public Guid postId { get; set; }
@@ -143,6 +151,9 @@
             PostContent = post.Content;
             PostTitle = post.Title;
             PostAuthor = post.Author.Username;
+            var tempDate = post.CreatedDateTime;
+            tempDate = DateTime.SpecifyKind(tempDate, DateTimeKind.Utc);
+            PostedDate = tempDate;
         }
     }
 
@@ -165,5 +176,35 @@
     {
         if (!string.IsNullOrEmpty(ch) && 250 < ch?.Length)
             yield return "Max 250 characters";
+    }
+
+    private string TimeAgo(DateTimeOffset dateTimeOffset)
+    {
+        var timeSpan = DateTimeOffset.UtcNow - dateTimeOffset;
+
+        if (timeSpan.Days > 365)
+        {
+            int years = (timeSpan.Days / 365);
+            if (timeSpan.Days % 365 != 0)
+                years += 1;
+            return $"{years} {(years == 1 ? "year" : "years")} ago";
+        }
+        if (timeSpan.Days > 30)
+        {
+            int months = (timeSpan.Days / 30);
+            if (timeSpan.Days % 31 != 0)
+                months += 1;
+            return $"{months} {(months == 1 ? "month" : "months")} ago";
+        }
+        if (timeSpan.Days > 0)
+            return $"{timeSpan.Days} {(timeSpan.Days == 1 ? "day" : "days")} ago";
+        if (timeSpan.Hours > 0)
+            return $"{timeSpan.Hours} {(timeSpan.Hours == 1 ? "hour" : "hours")} ago";
+        if (timeSpan.Minutes > 0)
+            return $"{timeSpan.Minutes} {(timeSpan.Minutes == 1 ? "minute" : "minutes")} ago";
+        if (timeSpan.Seconds > 5)
+            return $"{timeSpan.Seconds} seconds ago";
+
+        return "just now";
     }
 }

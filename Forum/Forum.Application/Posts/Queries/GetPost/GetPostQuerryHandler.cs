@@ -52,8 +52,8 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<PostRe
 
         var postAuthor = await _authorRepository.GetByAuthorIdAsync(post.AuthorId)!;
         var authorResponse = new AuthorResponse(
-                       post.AuthorId.ToString(),
-                       postAuthor.Username);
+                       post.AuthorId.ToString()!,
+                       postAuthor!.Username);
         var likes = new LikesResponse(
             post.Likes.Value);
 
@@ -61,7 +61,7 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<PostRe
                        post.Dislikes.Value);
 
         var postResonse = new PostResponse(
-            post.Id.ToString(),
+            post.Id.ToString()!,
             authorResponse,
             post.Title,
             post.Content,

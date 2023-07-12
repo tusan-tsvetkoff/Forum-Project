@@ -18,7 +18,8 @@ public class PostMappingConfig : IRegister
 
         config.NewConfig<(CreatePostRequest Request, Guid UserId), CreatePostCommand>()
             .Map(dest => dest.UserId, src => src.UserId)
-            .Map(dest => dest, src => src.Request);
+            .Map(dest => dest, src => src.Request)
+            .Map(dest => dest.Tags, src => src.Request.Tags.Select(tag => tag.ToLowerInvariant()));
 
         // Create mapping for query params to list posts request
         config.NewConfig<GetPostsQueryParams, GetPostsQuery>()

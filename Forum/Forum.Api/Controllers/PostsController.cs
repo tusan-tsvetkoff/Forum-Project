@@ -1,5 +1,4 @@
-﻿using AspNetCore.Hateoas.Models;
-using Forum.Application.Posts.Commands.CreatePost;
+﻿using Forum.Application.Posts.Commands.CreatePost;
 using Forum.Application.Posts.Commands.DeletePost;
 using Forum.Application.Posts.Commands.UpdatePost;
 using Forum.Application.Posts.Queries.GetPost;
@@ -11,7 +10,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using System.Security.Claims;
-using System.Web.Http.Controllers;
 
 namespace Forum.Api.Controllers;
 
@@ -20,12 +18,10 @@ public class PostsController : ApiController
 {
     private readonly IMapper _mapper;
     private readonly IMediator _mediator;
-    private readonly IUrlHelperFactory _urlHelperFactory;
-    public PostsController(IMapper mapper, IMediator mediator, IUrlHelperFactory urlHelperFactory)
+    public PostsController(IMapper mapper, IMediator mediator)
     {
         _mapper = mapper;
         _mediator = mediator;
-        _urlHelperFactory = urlHelperFactory;
     }
 
     [HttpPost("")]
@@ -69,8 +65,6 @@ public class PostsController : ApiController
         var query = _mapper.Map<GetPostQuery>(postId);
 
         var queryResult = await _mediator.Send(query);
-
-        
 
         return queryResult.Match(
             post => Ok(post),

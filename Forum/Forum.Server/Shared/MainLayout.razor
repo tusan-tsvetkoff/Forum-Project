@@ -6,15 +6,27 @@
 @inject NavigationManager NavigationManager
 @inject ITokenStorageService TokenStorageService
 
-<MudThemeProvider />
+<MudThemeProvider IsDarkMode="true"/>
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        @if (currentRoute.EndsWith("/create-post"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Create a Post</MudText>
+        }
+        else if (currentRoute.EndsWith("/your-posts"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">@FirstName's</MudText>
+            <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">Posts</MudText>
+        }
+        else
+        {
         <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Hello</MudText>
         <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">@FirstName</MudText>
+        }
         <MudSpacer />
         @if (IsLoggedIn)
         {
@@ -56,15 +68,38 @@
             @Body
         </MudContainer>
     </MudMainContent>
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <MudTooltip Text="Create Post">
+            <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" Href="/create-post"/>
+        </MudTooltip>
+    </div>
 </MudLayout>
 @code {
     bool IsLoggedIn { get; set; } = false;
     bool open = false;
     string FirstName { get; set; }
+    private string currentRoute;
 
     void ToggleDrawer()
     {
         open = !open;
+    }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        currentRoute = NavigationManager.Uri;
+
+        // Trigger initial rendering
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        currentRoute = e.Location;
+
+        // Trigger rendering when the location changes
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

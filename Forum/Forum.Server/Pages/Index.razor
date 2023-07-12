@@ -7,43 +7,92 @@
 @using System.Net.Http.Headers;
 @inject HttpClient HttpClient
 @inject ITokenStorageService TokenStorageService
+@inject NavigationManager NavigationManager
+@using Forum.Server.Pages;
+
+<style>
+    .modern-text-style {
+        font-family: 'Roboto', sans-serif;
+        font-size: 20px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+</style>
+
 <PageTitle>Home</PageTitle>
 
-<MudCard>
-    <MudCardContent>
-        <h2>Welcome to the Mystery Forum</h2>
-    </MudCardContent>
-</MudCard>
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" lg="10">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h2">Welcome to the Mystery Forum</MudText>
+                <MudText Typo="Typo.h5">A place where you can share your thoughts and ideas with the world</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" lg="8">
+        <MudCarousel 
+            Class="mud-width-full" @ref="_carousel" 
+            ItemsSource="@_source" @bind-SelectedIndex="selectedIndex" 
+            Style="height:200px;" 
+            ShowArrows="true" 
+            ShowBullets="true" 
+            EnableSwipeGesture="true" 
+            AutoCycle="false">
+            <ItemTemplate>
+                <div class="d-flex flex-column flex-column justify-center" style="height:100%">
+                    <MudIconButton 
+                        Class="mx-auto" 
+                        Icon="@Icons.Material.Filled.TableRows" 
+                        Color="Color.Info" Href="@GetHref()" 
+                        Size="@Size.Large" />
+                    <MudText 
+                        Align="@Align.Center" 
+                        Class="modern-text-style mx-auto pointer-events-none">
+                        @context
+                    </MudText>
+                </div>
+            </ItemTemplate>
+        </MudCarousel>
+    </MudItem>
 
-<MudCard>
-    <MudCardContent>
-        <h3>Active Users: @UserCount</h3>
-    </MudCardContent>
-</MudCard>
+    <MudItem xs="12" lg="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h3">Active Users</MudText>
+                <MudText Typo="Typo.body1">@UserCount</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
 
-<MudCard>
-    <MudCardContent>
-        <h3>Total Posts: @PostCount</h3>
-    </MudCardContent>
-</MudCard>
+    <MudItem xs="12" lg="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h3">Total Posts</MudText>
+                <MudText Typo="Typo.body1">@PostCount</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
 
 
 @code {
-    private MudCarousel<int> _carousel;
-    private IList<int> _source = new List<int>();
+    private MudCarousel<string> _carousel;
+    private IList<string> _source = new List<string>() { "10 Most Commented Posts", "10 Most Recent Posts" };
     private bool _autocycle = true;
     private bool _arrows = true;
     private bool _bullets = true;
+    private int selectedIndex = 0;
+
+    private readonly string _tenMostCommentedPath = "/ten-most-commented";
+    private readonly string _tenMostRecentPath = "/ten-most-recent";
 
     private int UserCount { get; set; }
     private int PostCount { get; set; }
     private bool IsAuthenticated { get; set; } = false;
     private string FirstName { get; set; }
 
-    private bool arrows = true;
-    private bool bullets = true;
-    private bool enableSwipeGesture = true;
-    private bool autocycle = true;
     private Transition transition = Transition.Fade;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -51,8 +100,23 @@
         if (firstRender)
         {
             await ProcessAuthenticationAsync();
+            if (await TokenStorageService.CheckTokenExpiry() is true)
+            {
+                await TokenStorageService.RemoveToken();
+                NavigationManager.NavigateTo("/login"); // TODO: Implement refresh token
+            }
             StateHasChanged();
         }
+    }
+
+    private string GetHref()
+    {
+        return selectedIndex switch
+        {
+            0 => _tenMostCommentedPath,
+            1 => _tenMostRecentPath,
+            _ => throw new InvalidOperationException("Invalid index")
+        };
     }
 
     private async Task ProcessAuthenticationAsync()
@@ -65,7 +129,6 @@
             var statistics = await response.Content.ReadFromJsonAsync<StatisticsResponse>();
             UserCount = statistics.TotalUsersCount;
             PostCount = statistics.TotalPostsCount;
-            _source = new List<int> { UserCount, PostCount };
         }
         else
         {
@@ -84,5 +147,10 @@
             // Set the token in the authorization header for subsequent requests
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
+    }
+
+    private void NavigateToTenMostCommented()
+    {
+        NavigationManager.NavigateTo("/ten-most-commented");
     }
 }

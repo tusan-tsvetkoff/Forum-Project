@@ -34,6 +34,11 @@ public class TagRepository : ITagRepository
         return await _dbContext.Tags.FirstOrDefaultAsync(t => t.Name == name);
     }
 
+    public async Task<List<Tag>> GetTagsAsync()
+    {
+        return await _dbContext.Tags.ToListAsync();
+    }
+
     public async Task UpdateAsync(Tag tag)
     {
         _dbContext.Update(tag);

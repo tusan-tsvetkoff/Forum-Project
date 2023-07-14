@@ -6,7 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject ITokenStorageService TokenStorageService
 
-<MudThemeProvider IsDarkMode="true"/>
+<MudThemeProvider IsDarkMode="true" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -22,10 +22,26 @@
             <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">@FirstName's</MudText>
             <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">Posts</MudText>
         }
+        else if (currentRoute.EndsWith("/unauthorized"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Oops!</MudText>
+        }
+        else if (currentRoute.EndsWith("/not-found"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Not Found</MudText>
+        }
+        else if (currentRoute.EndsWith("/login"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Login</MudText>
+        }
+        else if (currentRoute.EndsWith("/register"))
+        {
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Register</MudText>
+        }
         else
         {
-        <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Hello</MudText>
-        <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">@FirstName</MudText>
+            <MudText Typo="Typo.h3" Class="ml-2 pointer-events-none">Hello</MudText>
+            <MudText Typo="Typo.h5" Class="pointer-events-none ml-4 mt-4">@FirstName</MudText>
         }
         <MudSpacer />
         @if (IsLoggedIn)
@@ -70,7 +86,7 @@
     </MudMainContent>
     <div style="position: fixed; bottom: 20px; right: 20px;">
         <MudTooltip Text="Create Post">
-            <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" Href="/create-post"/>
+            <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Secondary" Href="/create-post" />
         </MudTooltip>
     </div>
 </MudLayout>

@@ -100,10 +100,10 @@
         if (firstRender)
         {
             await ProcessAuthenticationAsync();
-            if (await TokenStorageService.CheckTokenExpiry() is true)
+            if (IsAuthenticated && await TokenStorageService.CheckTokenExpiry() is true) // this should be enough to check if the token is expired
             {
                 await TokenStorageService.RemoveToken();
-                NavigationManager.NavigateTo("/login"); // TODO: Implement refresh token
+                NavigationManager.NavigateTo("/login"); 
             }
             StateHasChanged();
         }

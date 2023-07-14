@@ -1,0 +1,41 @@
+﻿@page "/unauthorized"
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Rendering;
+@using Microsoft.AspNetCore.Identity
+@inject NavigationManager Navigation
+
+<PageTitle>Oops!</PageTitle>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" lg="8">
+        <MudContainer>
+            <MudText Typo="Typo.h3">Please log in or register to continue.</MudText>
+        </MudContainer>
+    </MudItem>
+    <MudItem xs="12" lg="6">
+        <MudPaper Class="mx-2 pa-2 " Outlined="true">
+            <MudText Align="Align.Start" Typo="Typo.h6">
+                Already have an account,
+                <MudLink Typo="Typo.h6" OnClick="NavigateToLogin">click here</MudLink>
+                to login!
+            </MudText>
+            <MudText Align="Align.Start" Typo="Typo.h6">Don't have an account,
+                <MudLink Typo="Typo.h6" OnClick="NavigateToRegister">click here</MudLink>
+                to create an account!
+            </MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    private void NavigateToRegister()
+    {
+        Navigation.NavigateTo("/register");
+    }
+
+    private void NavigateToLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

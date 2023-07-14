@@ -3,6 +3,7 @@
 @using Forum.Contracts.Post;
 @using Forum.Server.Common.Interfaces;
 @using System.Net.Http.Headers;
+@using System.IdentityModel.Tokens.Jwt;
 @inject HttpClient HttpClient
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
@@ -43,69 +44,126 @@
     }
 </style>
 
-<MudContainer MaxWidth="MaxWidth.Large">
-    <MudCard>
-        <MudCardHeader>
-            <CardHeaderContent>
-                <MudText Typo="Typo.h3">@PostTitle</MudText>
-                <MudText Typo="Typo.overline">Posted by u/@PostAuthor @TimeAgo(PostedDate)</MudText>
-            </CardHeaderContent>
-        </MudCardHeader>
-        <MudCardContent>
-            <MudText Typo="Typo.body1" Class="mt-n6">@PostContent</MudText>
-        </MudCardContent>
-        <MudCardActions>
-            <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Default" />
-            <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" />
-            <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
-            <MudNavLink Disabled="true" Icon="@Icons.Material.Filled.Comment">
-                @Comments?.Count Comments
-            </MudNavLink>
-        </MudCardActions>
-    </MudCard>
-</MudContainer>
 
-<MudContainer>
-    <MudPaper>
-        <MudTextField Class="mx-2 mb-1 textarea-field"
-                      Lines="5"
-                      Counter="250"
-                      Immediate="true"
-                      Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))"
-        @bind-Value="newComment"
-                      Label="Add a comment" Variant="Variant.Text" />
-        <div class="button-container">
-            <MudButton Color="Color.Primary" Class="mt-1 mb-2 mr-1" Variant="Variant.Filled" @onclick="()=> AddComment(postId)">Add Comment</MudButton>
-        </div>
-    </MudPaper>
-</MudContainer>
-<!-- Comments Section -->
-<MudContainer Class="mt-2">
-    <MudCard>
-        <MudCardContent>
-            <div class="comment-list">
-                @if (Comments is null)
+<MudGrid Justify="Justify.Center">
+    <MudItem xs="12" lg="11" Class="mb-n5">
+        <MudCard>
+            <MudCardHeader Class="pa-3 mb-n5">
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5">@PostTitle</MudText>
+                    <MudText Typo="Typo.overline">Posted by u/@PostAuthor @TimeAgo(PostedDate)</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudItem xs="12" lg="11" Class="mb-14 pt-n10 ml-n7">
+                    <MudContainer>
+                        <MudChipSet>
+                            @if (PostTags is not null)
+                            {
+                                foreach (var item in PostTags.Take(2))
+                                {
+                                    <MudChip Color="Color.Default" Text="@item"></MudChip>
+                                }
+                                if (PostTags.Count > 2)
+                                {
+                                    if (!isExpanded)
+                                    {
+                                        <MudChip Color="Color.Info" OnClick="() => isExpanded = !isExpanded">Show @PostTags.Skip(2).Count() more</MudChip>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in PostTags.Skip(2))
+                                        {
+                                            <MudChip Color="Color.Default" Text="@item"></MudChip>
+                                        }
+                                        <MudChip Color="Color.Info" OnClick="() => isExpanded = !isExpanded">Show less</MudChip>
+                                    }
+                                }
+                            }
+                        </MudChipSet>
+                    </MudContainer>
+                </MudItem>
+                <MudDivider />
+                @if (isEditing)
                 {
-                    <h3>No comments yet!</h3>
+                    <MudTextField T="string"
+                    @bind-Value="@PostContent"
+                                  Class="mx-2 mb-1 textarea-field"
+                                  Lines="5"
+                                  Counter="8192"
+                                  Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersContent))"
+                                  Label="A mysterious edit.."
+                                  Variant="Variant.Text" />
                 }
                 else
                 {
-                    foreach (var comment in Comments.OrderByDescending(c => c.Timestamp))
-                    {
-                        <div class="comment">
-                            <div class="comment-header">
-                                <span class="comment-author">@comment.Author</span>
-                                <span class="comment-date">@comment.Timestamp</span>
-                            </div>
-                            <div class="comment-body">@comment.Content</div>
-                        </div>
-                    }
+                    <MudText Typo="Typo.body2" Class="mt-n6">@PostContent</MudText>
                 }
-
+            </MudCardContent>
+            <MudCardActions>
+                <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Default" />
+                <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" />
+                <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+                <MudNavLink Disabled="true" Icon="@Icons.Material.Filled.Comment">
+                    @Comments?.Count
+                    @(Comments?.Count == 1 ? "Comment" : "Comments")
+                </MudNavLink>
+                @if (isEditing is true)
+                {
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Default">Submit</MudButton>
+                    <MudButton ButtonType="ButtonType.Reset" Color="Color.Default">Cancel</MudButton>
+                }
+                else
+                {
+                    <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Edit" Color="Color.Default" />
+                    <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Delete" Color="Color.Default" />
+                }
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" lg="11" Class="mb-n2">
+        <MudPaper>
+            <MudTextField Class="mx-2 mb-1 textarea-field"
+                          Lines="5"
+                          Counter="250"
+                          Immediate="true"
+                          Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))"
+            @bind-Value="newComment"
+                          Label="Add a comment" Variant="Variant.Text" />
+            <div class="button-container">
+                <MudButton Color="Color.Primary" Class="mt-1 mb-2 mr-1" Variant="Variant.Filled" @onclick="()=> AddComment(postId)">Add Comment</MudButton>
             </div>
-        </MudCardContent>
-    </MudCard>
-</MudContainer>
+        </MudPaper>
+    </MudItem>
+
+    <!-- Comments Section -->
+    <MudItem xs="12" lg="11">
+        <MudCard>
+            <MudCardContent>
+                <div class="comment-list">
+                    @if (Comments.Count <= 0)
+                    {
+                        <MudText Align="Align.Center" Typo="Typo.h6">No comments yet. Be the first to comment!</MudText>
+                    }
+                    else
+                    {
+                        foreach (var comment in Comments.OrderByDescending(c => c.Timestamp))
+                        {
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">@comment.Author</span>
+                                    <span class="comment-date">@comment.Timestamp</span>
+                                </div>
+                                <div class="comment-body">@comment.Content</div>
+                            </div>
+                        }
+                    }
+                </div>
+            </MudCardContent>
+
+        </MudCard>
+    </MudItem>
+</MudGrid>
 
 
 
@@ -115,10 +173,20 @@
     private string PostContent { get; set; }
     private string PostTitle { get; set; }
     private string PostAuthor { get; set; }
+    private IList<string> PostTags { get; set; } = new List<string>();
     private DateTimeOffset PostedDate { get; set; }
 
+    private bool IsAuthor { get; set; } = false;
+
+    private bool IsLoggedIn { get; set; } = false;
+
+    private bool EditDeleteButtonsDisabled { get; set; } = true;
+
     private string newComment;
-    private int timeAgo;
+
+    private bool isEditing = false;
+
+    private bool isExpanded = false;
 
     [Parameter]
     public Guid postId { get; set; }
@@ -132,12 +200,25 @@
         }
     }
 
+    private async Task EditPost()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            NavigationManager.NavigateTo("/unauthorized");
+        }
+
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+
+    }
+
     private async Task LoadPostData()
     {
         var token = await TokenStorageService.RetrieveToken();
         if (string.IsNullOrEmpty(token))
         {
-            NavigationManager.NavigateTo("/login");
+            NavigationManager.NavigateTo("/unauthorized");
         }
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -154,6 +235,14 @@
             var tempDate = post.CreatedDateTime;
             tempDate = DateTime.SpecifyKind(tempDate, DateTimeKind.Utc);
             PostedDate = tempDate;
+            PostTags = post.Tags;
+
+            var clientUsername = await RetrieveUsername(token);
+            IsAuthor = IsAuthorOfPost(clientUsername);
+            if (IsAuthor || clientUsername == "admin")
+            {
+                EditDeleteButtonsDisabled = false;
+            }
         }
     }
 
@@ -206,5 +295,45 @@
             return $"{timeSpan.Seconds} seconds ago";
 
         return "just now";
+    }
+
+    private void NavigateToEditPost(Guid postId)
+    {
+        NavigationManager.NavigateTo($"/editpost/{postId}");
+    }
+
+    private void NavigateToDeletePost(Guid postId)
+    {
+        NavigationManager.NavigateTo($"/deletepost/{postId}");
+    }
+
+    private bool IsAuthorOfPost(string clientUsername) => clientUsername == PostAuthor ? true : false;
+
+    private async Task<string> RetrieveUsername(string token)
+    {
+        SetBearerToken(HttpClient, token);
+        var username = ExtractUsernameFromToken(token);
+        return username;
+    }
+
+    // TODO: Create a helper class and encapsulate this method
+    public static void SetBearerToken(HttpClient httpClient, string token)
+    {
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+    }
+
+    public static string ExtractUsernameFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+        var usernameClaim = jsonToken?.Claims.FirstOrDefault(claim => claim.Type == "unique_name");
+        var username = usernameClaim?.Value;
+        return username;
+    }
+
+    private IEnumerable<string> MaxCharactersContent(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 8192 < ch?.Length)
+            yield return "Max 8192 characters";
     }
 }

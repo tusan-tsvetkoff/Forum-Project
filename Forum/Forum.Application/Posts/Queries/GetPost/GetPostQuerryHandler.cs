@@ -60,12 +60,14 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<PostRe
         var dislikes = new DislikesResponse(
                        post.Dislikes.Value);
 
+        var tagList = post.Tags.Select(tag => tag.Name).ToList();
+
         var postResonse = new PostResponse(
             post.Id.ToString()!,
             authorResponse,
             post.Title,
             post.Content,
-            post.Tags.Select(tag => tag.Name).ToList(),
+            tagList,
             likes,
             dislikes,
             commentResponseList,

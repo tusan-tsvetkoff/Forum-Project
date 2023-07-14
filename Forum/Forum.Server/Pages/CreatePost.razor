@@ -40,104 +40,67 @@
 <MudForm>
     <MudGrid Justify="Justify.Center" Spacing="2">
         <MudItem xs="12" lg="10">
-            <MudPaper Class="pa-2" Outlined="true">
+            <MudPaper Class="pa-1 mb-n1" Outlined="true">
                 <MudTextField T="string"
-                    @bind-Value="@postTitle"
+                @bind-Value="@postTitle"
                               Counter="150"
-                              HelperText="A mystery title"
                               Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))"
-                              Label="Post Title"
+                              Label="Title"
                               Immediate="true"
-                              Variant="Variant.Text" />
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="12" lg="10">
-            <MudPaper Class="mt-1" Outlined="true">
-                <MudTextField 
-                    T="string"
-                    @bind-Value="@postContent"
-                    Class="mx-2 mb-1 textarea-field" 
-                    Lines="5" 
-                    Counter="8192" 
-                    Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersContent))"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Dense"
+                              Class="pa-3 mb-n4" />
+                <MudTextField T="string"
+                @bind-Value="@postContent"
+                              Class="px-3"
+                              Lines="5"
+                              Counter="8192"
+                              Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersContent))"
                               Label="Write something mysterious"
-                              Variant="Variant.Text" />
-            </MudPaper>
-        </MudItem>
-        @if (addedTags.Any())
-        {
-            <MudItem xs="12" lg="4">
-                <MudCard Elevation="2" Class="my-2 pa-2 pl-3 mr-4 mt-n2">
-                    <MudCardHeader>
-                        <CardHeaderContent>
-                            <MudText Typo="Typo.h6">Tags</MudText>
-                        </CardHeaderContent>
-                        <CardHeaderActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.DeleteSweep" Color="Color.Error" OnClick="ClearTags" />
-                        </CardHeaderActions>
-                    </MudCardHeader>
-                    <MudCardContent>
-                        <MudChipSet AllClosable="true" OnClose="Closed">
-                            @foreach (var item in addedTags)
+                              Variant="Variant.Filled" />
+                <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
+                    <MudContainer>
+                        <MudTextField T="string"
+                                      Value="@searchText"
+                                      ValueChanged="@(async (x)=> await HandleInputChange(x.ToString()))"
+                                      Immediate="true"
+                                      Placeholder="Search tags"
+                                      Class="pa-2" />
+                    </MudContainer>
+                    <MudContainer Class="px-6">
+                        <MudChipSet MultiSelection="true" Filter="true">
+                            @foreach (var item in filteredTags.Take(20))
                             {
-                                <MudChip Color="Color.Default" Text="@item"></MudChip>
+                                var color = GetChipColor(item);
+                                <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Text="@item" OnClick="() => ToggleChip(item)"></MudChip>
                             }
+                            @if (filteredTags.Count() > 20)
+                            {
+                                if (!areTagsExpanded)
+                                {
+                                    <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Show more">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.ExpandMore" Color="Color.Info" @onclick="ToggleTags" />
+                                    </MudTooltip>
+                                }
+                                else
+                                {
+                                    foreach (var tag in filteredTags.Skip(20))
+                                    {
+                                        var color = GetChipColor(tag);
+                                        <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Text="@tag" OnClick="() => ToggleChip(tag)"></MudChip>
+                                    }
+                                    <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Show less">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.ExpandLess" Color="Color.Info" @onclick="ToggleTags" />
+                                    </MudTooltip>
+                                }
+                            }
+                            <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Create a new tag">
+                                <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.AddCircle" OnClick="OpenDialog" />
+                            </MudTooltip>
                         </MudChipSet>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-        }
-        else
-        {
-            <MudItem xs="12" lg="4">
-                <MudPaper Elevation="2" Class="my-2 pa-2 pl-3 mr-4 mt-n2">
-                    <MudElement HtmlTag="a"
-                                Class="ma-0"
-                                Style="color:red;font-weight:bold;">
-                        You haven't added any tags yet!
-                    </MudElement>
-                </MudPaper>
-            </MudItem>
-        }
-        <MudItem xs="6" lg="6">
-            <MudPaper Class="my-2 pa-2 mt-n2" Outlined="true">
-                <div class="autocomplete-container">
-                    <MudAutocomplete T="string" Label="Tags" @bind-Value="selectedTag" SearchFunc="@SearchTags"
-                                     ResetValueOnEmptyText="true"
-                                     CoerceText="true" CoerceValue="false" ShowProgressIndicator="true"
-                                     Margin="Margin.Dense"
-                                     Dense="true">
-                        <ProgressIndicatorTemplate>
-                            <MudProgressLinear Size="Size.Small" Indeterminate="true" Color="Color.Success" />
-                        </ProgressIndicatorTemplate>
-                        <BeforeItemsTemplate>
-                            <div class="d-flex align-center">
-                                <MudButton Color="Color.Primary" OnClick="CreateTag">Create Tag</MudButton>
-                                <MudTextField Class="pb-4 pt-n6 ml-2" Label="Enter tag name here.." T="string" @bind-Value="newTag"></MudTextField>
-                            </div>
-                        </BeforeItemsTemplate>
-                    </MudAutocomplete>
-                    <div class="button-container">
-                        @if (!string.IsNullOrWhiteSpace(selectedTag) && !addedTags.Contains(selectedTag))
-                        {
-                            <MudTooltip Text="Add Tag">
-                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" OnClick="AddTag" Size="Size.Small" />
-                            </MudTooltip>
-                        }
-                        else if (string.IsNullOrWhiteSpace(selectedTag))
-                        {
-                            <MudTooltip Text="Search or select a tag.">
-                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Disabled="true" Size="Size.Small" />
-                            </MudTooltip>
-                        }
-                        else if (addedTags.Contains(selectedTag))
-                        {
-                            <MudTooltip Text="Tag is already added.">
-                                <MudFab StartIcon="@Icons.Material.Filled.Add" Color="Color.Success" Disabled="true" Size="Size.Small" />
-                            </MudTooltip>
-                        }
-                    </div>
-                </div>
+                        <MudDivider />
+                    </MudContainer>
+                </MudContainer>
             </MudPaper>
         </MudItem>
     </MudGrid>
@@ -152,6 +115,21 @@
     </MudItem>
 </MudGrid>
 
+<MudDialog @bind-IsVisible="visible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.NewLabel" Class="mr-3" /> Create a new tag
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField T="string" @bind-Value="newTag" Label="Tag name"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Close" Class="px-10">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Submit" Class="px-10">Create Tag</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     private string postTitle;
     private string postContent;
@@ -160,9 +138,34 @@
     private bool coerceText;
     private bool coerceValue;
     private bool confirmationDialogVisible = false;
+
+    private string searchText = "";
     private string newTag;
+    private IList<string> tags = new List<string>();
+    private bool areTagsExpanded = false;
 
     private IList<string> addedTags = new List<string>();
+    private IList<string> filteredTags = new List<string>();
+
+    private MudChip[] selected;
+    private static Dictionary<string, Color> chipColors = new Dictionary<string, Color>();
+
+    private bool visible;
+    private DialogOptions dialogOptions = new() { FullWidth = true, CloseOnEscapeKey = true };
+    private void OpenDialog() => visible = true;
+    private void Close() => visible = false;
+    private async Task Submit()
+    {
+        visible = false;
+        await CreateTag();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await GetTags();
+        await FilterTags();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -175,8 +178,62 @@
             }
 
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            StateHasChanged();
         }
+    }
+
+    private Color GetChipColor(string tag)
+    {
+        if (!chipColors.ContainsKey(tag))
+        {
+            var randomColor = GetRandomColor();
+            chipColors.Add(tag, randomColor);
+        }
+
+        return chipColors[tag];
+    }
+
+    private Color GetRandomColor()
+    {
+        var values = Enum.GetValues(typeof(Color));
+        var random = new Random();
+        var randomColor = (Color)values.GetValue(random.Next(values.Length));
+        return randomColor;
+    }
+
+    private void ToggleChip(string tag)
+    {
+        if (addedTags.Contains(tag))
+        {
+            addedTags.Remove(tag);
+        }
+        else
+        {
+            addedTags.Add(tag);
+        }
+    }
+
+    private void ToggleTags()
+    {
+        areTagsExpanded = !areTagsExpanded;
+    }
+
+    private async Task HandleInputChange(string value)
+    {
+        searchText = value;
+        await FilterTags();
+    }
+
+    private async Task FilterTags()
+    {
+        if (string.IsNullOrEmpty(searchText))
+        {
+            filteredTags = tags.ToList();
+        }
+        else
+        {
+            filteredTags = tags.Where(tag => tag.Contains(searchText)).ToList();
+        }
+        StateHasChanged();
     }
 
     private async Task SubmitPost()
@@ -194,6 +251,8 @@
 
         if (response.IsSuccessStatusCode)
         {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+            Snackbar.Add("Post created successfully!", Severity.Success);
             var postResponse = await response.Content.ReadFromJsonAsync<PostResponse>();
             var postId = Guid.Parse(postResponse!.Id);
             NavigationManager.NavigateTo($"/post/{postId}");
@@ -229,22 +288,16 @@
             .Select(x => x.Name);
     }
 
-    private void AddTag()
+    private async Task GetTags()
     {
-        if (string.IsNullOrEmpty(selectedTag))
-        {
-            Snackbar.Add("Please select a tag to add.", Severity.Warning);
-            return;
-        }
+        var response = await Http.GetAsync("https://localhost:7050/api/public/tags");
+        var tags = await response.Content.ReadFromJsonAsync<List<TagsResponse>>();
+        this.tags = tags.Select(t => t.Name).ToList();
+    }
 
-        if (addedTags.Contains(selectedTag))
-        {
-            Snackbar.Add("Tag already added.", Severity.Info);
-            return;
-        }
-
-        addedTags.Add(selectedTag);
-        selectedTag = string.Empty;
+    private void AddTag(string tag)
+    {
+        addedTags.Add(tag);
     }
 
     private async Task CreateTag()
@@ -266,16 +319,18 @@
             Snackbar.Add($"Tag {newTag} could not be created.", Severity.Error);
         }
         newTag = string.Empty;
+        await GetTags();
+        await FilterTags();
         StateHasChanged();
     }
 
-    private void Closed(MudChip chip)
-    {
-        addedTags.Remove(chip.Text);
-    }
+    //private void Closed(MudChip chip)
+    //{
+    //    addedTags.Remove(chip.Text);
+    //}
 
-    private void ClearTags()
-    {
-        addedTags.Clear();
-    }
+    //private void ClearTags()
+    //{
+    //    addedTags.Clear();
+    //}
 }

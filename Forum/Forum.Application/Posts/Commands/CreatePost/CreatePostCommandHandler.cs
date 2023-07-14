@@ -46,6 +46,8 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, Error
             post.AddTag(tagEntity!);
         }
 
+        await _postRepository.UpdateAsync(post, cancellationToken);
+
         return post;
     }
 }

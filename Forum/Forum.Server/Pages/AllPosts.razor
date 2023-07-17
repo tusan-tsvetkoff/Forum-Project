@@ -1,0 +1,325 @@
+﻿@using Forum.Contracts.Common;
+@using Forum.Contracts.Post;
+@inject ITokenStorageService TokenStorageService
+@inject NavigationManager NavigationManager
+@inject IAPIClient APIClient
+@using Forum.Server.Common.Interfaces;
+@using System.IdentityModel.Tokens.Jwt;
+@inject ISnackbar Snackbar
+
+
+@page "/all-posts"
+
+<MudStack Style="display: flex; justify-content: center; align-items: center;">
+    <MudPaper Class="d-flex justify-center" Style="width: 700px;">
+        <MudTextField Style="width: 680;"
+                      T="string"
+        @bind-Value="SearchTerm"
+                      Placeholder="Search mystery posts"
+                      Variant="Variant.Filled"
+                      Margin="Margin.Dense"
+                      Class="ma-2"
+                      Immediate="true"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Outlined.Search"
+                      OnAdornmentClick="async () => await LoadPostsAsync()" />
+    </MudPaper>
+    <MudPaper Style="width: 700px;">
+        <MudToolBar Dense="true">
+            <MudButton Class="py-1 mr-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => GetNewestPostsAsync()">New</MudButton>
+            <MudButton Class="py-1 mr-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => GetOldestPostsAsync()">Old</MudButton>
+            <MudButton Class="py-1 mr-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => LoadPostsAsync()">Top</MudButton>
+            <MudSpacer />
+            <MudButton Class="py-1 mr-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="() => ResetParms()">Clear Parameters</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.Sort" Title="Sort by">
+                <MudMenuItem OnClick="() => SortByTitleAsync()">Title</MudMenuItem>
+                <MudMenuItem OnClick="() => SortByContentAsync()">Content</MudMenuItem>
+                <MudMenuItem OnClick="() => SortByCommentsAsync()">Comments</MudMenuItem>
+                <MudMenuItem OnClick="() => OpenTagSelectionDialog()">Tags</MudMenuItem>
+            </MudMenu>
+        </MudToolBar>
+    </MudPaper>
+    @if (Posts is not null)
+    {
+        foreach (var post in Posts.Posts)
+        {
+            <MudCard Class="post-card" Style="width: 700px;">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText @onclick="() => NavigateToSelectedPost(post.Id)" Class="post-card-title mb-n2" Typo="Typo.h5">@post.Title</MudText>
+                        <MudText Class="pl-2" Typo="Typo.overline">Posted by u/@post.Author.Username</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudDivider Class="mt-n3" />
+                <MudCardContent>
+                    <MudText Typo="Typo.body2" Style="word-wrap: break-word">
+                        @post.Content
+                    </MudText>
+                </MudCardContent>
+                <MudDivider />
+                <MudCardActions>
+                    <MudIconButton Color="Color.Primary" Icon="@Icons.Material.Filled.ThumbUp" OnClick="Click"></MudIconButton>
+                    @post.Likes.Amount
+                    <MudIconButton Color="Color.Secondary" Icon="@Icons.Material.Filled.ThumbDown" OnClick="Click"></MudIconButton>
+                    @post.Dislikes.Amount
+                </MudCardActions>
+            </MudCard>
+        }
+        <MudItem xs="6" lg="6">
+            <MudPagination Variant="Variant.Outlined" Count="TotalPages" Selected="CurrentPage" SelectedChanged="OnPageChanged" />
+        </MudItem>
+    }
+</MudStack>
+
+<MudDialog @bind-IsVisible="isTagSelectionDialogVisible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.NewLabel" Class="mr-3" /> Select tag(s) to add
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Class="mt-n2">
+            <MudTextField T="string"
+            @bind-Value="searchTagText"
+                          Immediate="true"
+                          Placeholder="Search tags"
+                          AdornmentIcon="@Icons.Material.Filled.Highlight"
+                          Adornment="Adornment.End"
+                          Class="pa-2" />
+        </MudContainer>
+        <MudContainer>
+            <MudChipSet MultiSelection="true" Filter="true">
+                @foreach (var tag in TagsToSelect)
+                {
+                    <MudChip SelectedColor="Color.Success"
+                             IconColor="Color.Success"
+                             CheckedIcon="@Icons.Material.Outlined.Add"
+                             Color="Color.Default"
+                             Text="@tag"
+                             OnClick="() => HandleTagAddition(tag)">
+                        <MudHighlighter Text="@tag" HighlightedText="@searchTagText" />
+                    </MudChip>
+                }
+            </MudChipSet>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="CloseTagSelectionDialog" Class="px-10">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="() => SortByTagsAsync()" Class="px-10">Confirm selection</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    private PostResponseListNew? Posts { get; set; }
+    private PageInfo? PageInfo { get; set; }
+
+    private int CurrentPage { get; set; } = 1;
+    private int TotalPages { get; set; } = 1;
+    private int PageSize { get; set; } = 10;
+    private int TotalPosts { get; set; } = 0;
+    private bool HasNextPage => PageInfo?.HasNextPage ?? false;
+    private bool HasPreviousPage => PageInfo?.HasPreviousPage ?? false;
+
+    private string SearchTerm { get; set; } = string.Empty;
+    private string SortColumn { get; set; } = string.Empty;
+    private string SortOrder { get; set; } = string.Empty;
+
+    private IList<string> TagsToSelect { get; set; } = new List<string>();
+    private IList<string> SelectedTags { get; set; } = new List<string>();
+
+    private string selectedTagString = string.Empty;
+
+    private string searchTagText = string.Empty;
+
+    private string CurrentUser = string.Empty;
+
+    private bool isUserAuthenticated = false;
+    private bool isTagSelectionDialogVisible = false;
+
+    private DialogOptions dialogOptions = new() { FullWidth = true, CloseOnEscapeKey = true };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await AuthenticateUserAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task AuthenticateUserAsync()
+    {
+        if (!isUserAuthenticated)
+        {
+            var token = await TokenStorageService.RetrieveToken();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                NavigationManager.NavigateTo("/unauthorized");
+            }
+            else
+            {
+                CurrentUser = await RetrieveUsername(token);
+                StateHasChanged();
+                await LoadPostsAsync();
+                await GetTags();
+                isUserAuthenticated = true;
+            }
+        }
+    }
+    private async void GetNewestPostsAsync()
+    {
+        SortColumn = "created";
+        SortOrder = "desc";
+        await LoadPostsAsync();
+    }
+
+    private async void GetOldestPostsAsync()
+    {
+        SortColumn = "created";
+        SortOrder = "asc";
+        await LoadPostsAsync();
+    }
+
+    private async void GetTopPostsAsync()
+    {
+        SortColumn = "likes";
+        SortOrder = "desc";
+        await LoadPostsAsync();
+    }
+
+    private async void SortByTitleAsync()
+    {
+
+        SortColumn = "title";
+        await LoadPostsAsync();
+    }
+
+    private async void SortByContentAsync()
+    {
+        SortColumn = "content";
+        await LoadPostsAsync();
+    }
+
+    private async void SortByCommentsAsync()
+    {
+        SortColumn = "comments";
+        SortOrder = "desc";
+        await LoadPostsAsync();
+    }
+
+    private async void SortByTagsAsync()
+    {
+        isTagSelectionDialogVisible = false;
+        SortColumn = "created";
+        SortOrder = "desc";
+        selectedTagString = string.Join(",", SelectedTags);
+        await LoadPostsAsync();
+    }
+
+    private void HandleTagAddition(string tag)
+    {
+        if (!SelectedTags.Contains(tag))
+        {
+            SelectedTags.Add(tag);
+        }
+        else
+        {
+            SelectedTags.Remove(tag);
+        }
+    }
+
+    private async void OpenTagSelectionDialog()
+    {
+        isTagSelectionDialogVisible = true;
+    }
+
+    private void CloseTagSelectionDialog() => isTagSelectionDialogVisible = false;
+
+    private async Task LoadPostsAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var request = new GetPostsQueryParams(
+            SearchTerm, SortColumn,
+            SortOrder, null,
+            selectedTagString,
+            CurrentPage,
+            PageSize
+        );
+
+        var response = await APIClient.GetQueriedPostsAsync(request, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Posts = response.Model;
+            PageInfo = Posts.PageInfo;
+            CurrentPage = PageInfo.Page;
+            TotalPosts = PageInfo.TotalCount;
+            TotalPages = (int)Math.Ceiling((double)TotalPosts / 10);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Failed to load posts", Severity.Error);
+        }
+    }
+
+    private async Task GetTags()
+    {
+        var response = await APIClient.GetTagsAsync();
+
+        if (Snackbar.HandleResponse(response))
+        {
+            TagsToSelect = response.Model!.Select(t => t.Name).ToList();
+        }
+        else
+        {
+            Snackbar.Add("There was an error fetching tags.", Severity.Error);
+        }
+    }
+
+    private void NavigateToSelectedPost(string postId)
+    {
+        NavigationManager.NavigateTo($"/post/{Guid.Parse(postId)}");
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        CurrentPage = page;
+        await LoadPostsAsync();
+    }
+
+    private async Task<string>
+    RetrieveUsername(string token)
+    {
+        var username = ExtractUsernameFromToken(token);
+        return username;
+    }
+
+    public static string ExtractUsernameFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+        var usernameClaim = jsonToken?.Claims.FirstOrDefault(claim => claim.Type == "unique_name");
+        var username = usernameClaim?.Value;
+        return username;
+    }
+
+    private async void ResetParms()
+    {
+        SortColumn = string.Empty;
+        SortOrder = string.Empty;
+        SearchTerm = string.Empty;
+        SelectedTags.Clear();
+        selectedTagString = string.Empty;
+        await LoadPostsAsync();
+        StateHasChanged();
+    }
+
+    private Task Click()
+    {
+        return Task.CompletedTask;
+    }
+}

@@ -18,7 +18,13 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreated>
     public async Task Handle(UserCreated userCreatedEvent, CancellationToken cancellationToken)
     {
         // 1. Send an email to the user to verify their email address.
+        // TODO: Implement email verification.
+
+
+
         // 2. Send a welcome email to the user.
+
+
         // 3. Send a notification to the admin that a new user has registered.
         // 4. Create an author profile for the user.
         var author = Author.Create(

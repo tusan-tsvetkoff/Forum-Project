@@ -9,6 +9,9 @@
 @inject IDialogService DialogService
 @using Forum.Server.Dialogs;
 @inject ITokenStorageService TokenStorageService
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
 
 
 <PageTitle>Register</PageTitle>
@@ -79,38 +82,20 @@
             _registerPassword
         );
 
-        // Send the registration request to the backend API
-        var response = await HttpClient.PostAsJsonAsync("https://localhost:7050/auth/register", registerRequest);
-        // Get the token from the response
+        var newResponse = await APIClient.RegisterRequestAsync(registerRequest);
 
-
-
-        if (response.IsSuccessStatusCode)
+        if (this.Snackbar.HandleResponse(newResponse))
         {
-            // Registration successful
-            var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
-            var token = authResult.Token;
+            Snackbar.Add($"Welcome {_registerUsername}!", Severity.Success);
+            var token = newResponse.Model.Token;
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             await TokenStorageService.StoreToken(token);
-            OpenDialog();
-        }
-        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        {
-            // Registration failed
-            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-            errors = problemDetails!.Errors.SelectMany(x => x.Value).ToArray();
-        }
-        else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            // Registration failed
-            
-            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-            errors = problemDetails!.Errors.SelectMany(x => x.Value).ToArray();
+            StateHasChanged();
+            NavigationManager.NavigateTo("/");
         }
         else
         {
-            // Registration failed
-            errors = new[] { "Something went wrong" };
+            Snackbar.Add("Registration failed!", Severity.Error);
         }
     }
 

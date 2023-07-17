@@ -32,7 +32,7 @@
             else
             {
                 <MudNavLink Href="/your-posts">Your Posts</MudNavLink>
-                <MudNavLink Href="/">Explore All Posts</MudNavLink>
+                <MudNavLink Href="/all-posts">Explore All Posts</MudNavLink>
                 <MudNavLink Href="/">Mystery Post</MudNavLink>
             }
         </MudNavGroup>
@@ -58,6 +58,7 @@
         await TokenStorageService.RemoveToken();
         IsLoggedIn = false;
         NavigationManager.NavigateTo("/");
+        StateHasChanged();
     }
 
 }

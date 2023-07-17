@@ -55,6 +55,21 @@ public sealed class User : AggregateRoot<UserId, Guid>
         return user;
     }
 
+    public void UpdateProfile(
+        string firstName,
+        string lastName)
+    {
+        if (!string.IsNullOrWhiteSpace(firstName))
+        {
+            FirstName = firstName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(lastName))
+        {
+            LastName = lastName;
+        }
+    }
+
     // Only for admins
     public void UpdatePhoneNumber(string phoneNumber)
     {
@@ -69,6 +84,11 @@ public sealed class User : AggregateRoot<UserId, Guid>
     public void DemoteFromAdmin()
     {
         IsAdmin = false;
+    }
+
+    public void UpdatePassword(string password)
+    {
+        Password = password;
     }
 
 #pragma warning disable CS8618

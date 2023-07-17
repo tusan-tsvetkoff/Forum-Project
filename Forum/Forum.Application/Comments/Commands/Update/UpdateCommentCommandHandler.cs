@@ -62,11 +62,17 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         // 5. Update changes in the database
         await _commentRepository.UpdateAsync(comment, cancellationToken);
 
+        var fullName = $"{user.FirstName} {user.LastName}";
+
         // 6. Return result
         return new UpdateCommentResult(
             comment.Id.Value.ToString(),
             request.NewContent,
             editedTimestamp,
-            new AuthorResponse(authorId.Value, author.Username));
+            new AuthorResponse(
+                authorId.Value,
+                fullName,
+                user.Email,
+                author.Username));
     }
 }

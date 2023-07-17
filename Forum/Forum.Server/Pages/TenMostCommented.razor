@@ -1,6 +1,9 @@
 ﻿@inject HttpClient HttpClient
 @using Forum.Contracts.Post
+@using Forum.Server.Common.Interfaces;
 @page "/ten-most-commented"
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
 
 <style>
     .table-row {
@@ -54,7 +57,8 @@
     </HeaderContent>
     <RowTemplate>
         <MudTd>
-            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ToggleDetails(context.Id))"> Show
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ToggleDetails(context.Id))">
+                Show
                 @(IsExpanded(context.Id) ? "Less" : "More")
             </MudButton>
         </MudTd>
@@ -103,12 +107,15 @@
 
     private async Task GetMostCommentedAsync()
     {
-        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/posts/most-commented");
+        var response = await this.APIClient.GetMostCommentedAsync();
 
-        if (response.IsSuccessStatusCode)
+        if (this.Snackbar.HandleResponse(response))
         {
-            var postResponseList = await response.Content.ReadFromJsonAsync<PostResponseListNew>();
-            Posts = postResponseList;
+            Posts = response.Model;
+        }
+        else
+        {
+            this.Snackbar.Add(response.ErrorMessage, Severity.Error);
         }
     }
 

@@ -8,6 +8,7 @@ namespace Forum.Infrastructure.Persistence.Configurations;
 
 public class PostConfigurations : IEntityTypeConfiguration<Post>
 {
+    private const int maxTitleLength = 64;
     public void Configure(EntityTypeBuilder<Post> builder)
     {
         ConfigurePostTable(builder);

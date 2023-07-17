@@ -7,6 +7,6 @@ public record UpdateProfileCommand(
     Guid UserId,
     string? FirstName,
     string? LastName,
-    string? Username,
+    string? Password,
     string? AvatarUrl,
     string? PhoneNumber) : IRequest<ErrorOr<Updated>>;

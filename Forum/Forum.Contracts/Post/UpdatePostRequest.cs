@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Forum.Contracts.Post;
 
- public record UpdatePostRequest(
-     Guid Id,
-     Guid UserId,
-     string? NewTitle,
-     string? NewContent,
-     string? Tag,
-     string? TagToRemove); // TODO: Also add tags here
+public record UpdatePostRequest(
+    Guid? Id,
+    Guid? UserId,
+    string? NewTitle,
+    string? NewContent,
+    List<string>? Tags,
+    List<string>? TagsToRemove);

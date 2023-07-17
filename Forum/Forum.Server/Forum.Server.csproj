@@ -8,16 +8,17 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.6.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Common\NewFolder\" />
     <Folder Include="Pages\Preview\" />
-    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\NewFolder\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Forum.Api\Forum.Api.csproj" />
+    <ProjectReference Include="..\Forum.Contracts\Forum.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

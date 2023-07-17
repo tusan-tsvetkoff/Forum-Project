@@ -30,6 +30,16 @@ namespace Forum.Application.Authentication.Queries.Login
                 return Errors.Authentication.InvalidCredentials;
             }
 
+            // 1. If admin, no password check
+            if (user.IsAdmin)
+            {
+                var admintoken = _jwtTokenGenerator.GenerateToken(user);
+
+                return new AuthenticationResult(
+                                       user,
+                                       admintoken);
+            }
+
             // 2. Password is correct?
             if (!_passwordHasher.VerifyPassword(querry.Password, user.Password))
             {

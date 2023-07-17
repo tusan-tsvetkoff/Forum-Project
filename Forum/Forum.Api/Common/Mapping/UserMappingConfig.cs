@@ -1,4 +1,6 @@
-﻿using Forum.Application.Users.Commands.Delete;
+﻿using Forum.Application.Posts.Commands.UpdatePost;
+using Forum.Application.Users.Commands.Delete;
+using Forum.Application.Users.Commands.Update;
 using Forum.Application.Users.Queries;
 using Forum.Contracts.Common;
 using Forum.Contracts.Post;
@@ -27,6 +29,9 @@ public class UserMappingConfig : IRegister
             .Map(dest => dest.Id, src => src.Item1.Id.Value.ToString())
             .Map(dest => dest.PostCount, src => src.Item2.PostIds.Count)
             .Map(dest => dest.CommentCount, src => src.Item2.CommentIds.Count);
+
+        config.NewConfig<UpdateProfileRequest, UpdateProfileCommand>()
+            .Map(dest => dest, src => src);
 
         // Keeping it for now. Might be useful later
         config.NewConfig<(int Page, int PageSize, int TotalCount, bool HasNextPage, bool HasPreviousPage), PageInfo>()

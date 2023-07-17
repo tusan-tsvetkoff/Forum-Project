@@ -45,14 +45,15 @@ namespace Forum.Infrastructure.Persistence.Repositories
         {
             _dbContext.Users.Remove(user);
 
-            if (await _dbContext.Authors.FirstOrDefaultAsync(author => author.UserId == user.Id) is Author author) 
+            if (await _dbContext.Authors.FirstOrDefaultAsync(author => author.UserId == user.Id) is Author author)
             {
                 _dbContext.Authors.Remove(author);
             }
+            _dbContext.SaveChanges();
         }
 
         // This is a bit weird. I'm not sure if I should be updating the Author entity here.
-        public async void Update(User user)
+        public async Task Update(User user)
         {
             _dbContext.Users.Update(user);
             _dbContext.Authors.Update(_dbContext.Authors.FirstOrDefault(author => author.UserId == user.Id)!);

@@ -4,6 +4,7 @@ using Forum.Data.Models;
 using Forum.Data.PostAggregate;
 using Forum.Data.TagEntity;
 using Forum.Data.UserAggregate;
+using Forum.Data.UserAggregate.ValueObjects;
 using Forum.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,13 +30,31 @@ namespace Forum.Infrastructure.Persistence
                 .Ignore<List<IDomainEvent>>()
                 .ApplyConfigurationsFromAssembly(typeof(ForumDbContext).Assembly);
 
+            var adminUser = User.Create(
+                firstName: "Admin",
+                lastName: "User",
+                email: "admin4etotochkakom@example.com",
+                username: "admin",
+                password: "adminskaparola");
+
+            adminUser.PromoteToAdmin();
+
+            var adminAuthor = Author.Create(
+                               "Admin",
+                               "User",
+                               "admin",
+                               UserId.Create(adminUser.Id.Value));
+
+            modelBuilder.Entity<Author>().HasData(adminAuthor);
+            modelBuilder.Entity<User>().HasData(adminUser);
+
             base.OnModelCreating(modelBuilder);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.AddInterceptors(_publishDomainEventsInterceptor);
-            base.OnConfiguring(optionsBuilder); 
+            base.OnConfiguring(optionsBuilder);
         }
     }
 }

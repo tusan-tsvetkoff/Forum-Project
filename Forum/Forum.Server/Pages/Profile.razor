@@ -1,40 +1,374 @@
-﻿@page "/profile"
+﻿@using Forum.Contracts.Comment;
+@using Forum.Contracts.User;
+@using Forum.Server.Common.Interfaces;
+@using System.IdentityModel.Tokens.Jwt;
+@using Forum.Contracts.Post;
+@using System.Text.RegularExpressions;
+@inject IAPIClient APIClient
+@inject ITokenStorageService TokenStorageService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
+@page "/profile/{userId:guid}"
 
 <PageTitle>Profile</PageTitle>
 
 <MudCard Class="mb-2" Outlined="true">
     <MudCardHeader>
         <CardHeaderAvatar>
-                <MudAvatar Color="Color.Primary">V</MudAvatar>
+            <MudAvatar Color="Color.Primary">@FirstLetterOfName</MudAvatar>
         </CardHeaderAvatar>
         <CardHeaderContent>
-            <MudText Typo="Typo.h5" Class="pointer-events-none">Valya Tsvetkova</MudText>
+            @if (isEditingProfile is false && isChangingPassword is false)
+            {
+                <MudText Typo="Typo.h5" Class="pointer-events-none">@FullName</MudText>
+            }
+            else if (isEditingProfile is true)
+            {
+                <MudForm @ref="form" @bind-IsValid="@success">
+                    <MudTextField T="string" Label="First name" Required="false"
+                    @bind-Value="@NewFirstName" />
+                    <MudTextField T="string" Label="Last name" Required="false"
+                    @bind-Value="@NewLastName" />
+                </MudForm>
+            }
+            else if (isChangingPassword is true)
+            {
+                <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                              InputType="InputType.Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                              RequiredError="Password is required!" />
+                <MudTextField T="string"
+                              Label="Password" HelperText="Repeat the password" InputType="InputType.Password"
+                              Validation="@(new Func<string, string>(PasswordMatch))"
+                @bind-Value="@NewPassword" />
+            }
         </CardHeaderContent>
         <CardHeaderActions>
-            <MudMenu Icon="@Icons.Material.Filled.Settings" Color="Color.Primary">
-                <MudMenuItem>Edit Profile</MudMenuItem>
-                <MudMenuItem>Change Password</MudMenuItem>
-            </MudMenu>
+            @if (isEditingProfile is false && isChangingPassword is false)
+            {
+                <MudMenu Icon="@Icons.Material.Filled.Settings" Color="Color.Primary">
+                    <MudMenuItem OnClick="ToggleEditing">Edit Profile</MudMenuItem>
+                    <MudMenuItem OnClick="ToggleChangingPassword">Change Password</MudMenuItem>
+                    <MudMenuItem OnClick="async () => await DeleteUser()">Delete Profile</MudMenuItem>
+                </MudMenu>
+            }
+            else if (isEditingProfile is true)
+            {
+                <MudIconButton Icon="@Icons.Material.Outlined.Check" Color="Color.Success"
+                               OnClick="async () => await UpdatProfileAsync()" />
+                <MudIconButton OnClick="ToggleEditing" Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error"></MudIconButton>
+            }
+            else if (isChangingPassword is true)
+            {
+                <MudIconButton Icon="@Icons.Material.Outlined.Check" Color="Color.Success"
+                               OnClick="async () => await ChangePasswordAsync()" />
+                <MudIconButton OnClick="ToggleChangingPassword" Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error"></MudIconButton>
+            }
         </CardHeaderActions>
     </MudCardHeader>
     <MudCardContent Class="mt-n4 pb-2">
         <MudText Typo="Typo.h6">Username:</MudText>
-        <MudText Typo="Typo.body2">valya92</MudText>
+        <MudText Typo="Typo.body2">@Username</MudText>
         <MudText Typo="Typo.h6">Email:</MudText>
-        <MudText Typo="Typo.body2">valya@example.com</MudText>
+        <MudText Typo="Typo.body2">@Email</MudText>
     </MudCardContent>
 </MudCard>
 
-
 <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
     <MudTabPanel Text="Posts">
-        <MudText>Content One</MudText>
+        <MudList Clickable="true">
+            @if (Posts is not null && Posts.Posts.Any())
+            {
+                foreach (var post in Posts.Posts)
+                {
+                    <MudListItem Text="@post.Title" Icon="@Icons.Material.Filled.Forum" />
+                }
+            }
+        </MudList>
     </MudTabPanel>
     <MudTabPanel Text="Comments">
-        <MudText>Content Two</MudText>
+        <MudList>
+            <MudList Clickable="true">
+                @if (Comments is not null && Comments.Comments.Any())
+                {
+                    foreach (var comment in Comments.Comments)
+                    {
+                        <MudListItem Text="@comment.Content" Icon="@Icons.Material.Filled.Comment" />
+                    }
+                }
+            </MudList>
+        </MudList>
     </MudTabPanel>
 </MudTabs>
-@code {
 
+
+@code {
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    private bool isUserAuthenticated = false;
+    private bool isUserOwner = false;
+    private bool isEditingProfile = false;
+    private bool isChangingPassword = false;
+
+    bool success;
+    private MudForm form;
+
+
+    private DialogOptions dialogOptions = new DialogOptions()
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Small,
+            DisableBackdropClick = true,
+            CloseOnEscapeKey = true
+        };
+
+    private string Username { get; set; } = string.Empty;
+    private string FullName { get; set; } = string.Empty;
+    private string Email { get; set; } = string.Empty;
+    private string AuthorUserId { get; set; } = string.Empty;
+
+    private string NewFirstName { get; set; } = string.Empty;
+    private string NewLastName { get; set; } = string.Empty;
+    private string NewEmail { get; set; } = string.Empty;
+    private string NewPassword { get; set; } = string.Empty;
+    private MudTextField<string> pwField1;
+
+    private AuthorResponse? Author { get; set; }
+    private PostResponseListNew? Posts { get; set; }
+    private ListAuthorCommentResponse? Comments { get; set; }
+    private string CurrentUser { get; set; } = string.Empty;
+    private Guid CurrentUserId { get; set; } = Guid.Empty;
+
+    private string? FirstLetterOfName => Author?.FullName[0].ToString();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await AuthenticateUserAsync();
+            await GetAuthorProfileAsync();
+            await GetAuthorPostsAsync();
+            await GetAuthorCommentsAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task AuthenticateUserAsync()
+    {
+        if (!isUserAuthenticated)
+        {
+            var token = await TokenStorageService.RetrieveToken();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                NavigationManager.NavigateTo("/unauthorized");
+            }
+            else
+            {
+                CurrentUser = await RetrieveUsername(token);
+                CurrentUserId = await RetrieveUserId(token);
+                StateHasChanged();
+                isUserOwner = CurrentUserId == UserId;
+                isUserAuthenticated = true;
+            }
+        }
+    }
+
+    public async Task GetAuthorProfileAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        var authorId = $"Author_{UserId}";
+
+        var response = await APIClient.GetAuthorProfileByIdAsync(authorId, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Author = response.Model;
+            FullName = Author.FullName;
+            Email = Author.Email;
+            Username = Author.Username;
+            NewFirstName = Author.FullName.Substring(0);
+            NewLastName = Author.FullName.Substring(1);
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    public async Task GetAuthorPostsAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var request = new GetPostsQueryParams(
+        null, null, null, Author!.Username,
+        null, 1, 10);
+
+        var response = await APIClient.GetQueriedPostsAsync(request, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Posts = response.Model;
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    private async Task GetAuthorCommentsAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var request = new GetCommentsQueryParams(
+            null, null, null, Author!.Username,
+             1, 10);
+
+        var response = await APIClient.GetAuthorCommentsAsync(request, token, Author.Id);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Comments = response.Model;
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    private void ToggleEditing() => isEditingProfile = !isEditingProfile;
+    private void ToggleChangingPassword() => isChangingPassword = !isChangingPassword;
+
+    private async Task UpdatProfileAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        var request = new UpdateProfileRequest(
+            null,
+            NewFirstName,
+            NewLastName,
+            null,
+            null,
+            null
+        );
+
+        var userId = Guid.Parse(Author.Id.Replace("Author_", ""));
+        var response = await APIClient.UpdateUserAsync(userId, token, request);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Profile updated successfully", Severity.Success);
+            await GetAuthorProfileAsync();
+            isEditingProfile = false;
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        var request = new UpdateProfileRequest(
+            null,
+            null,
+            null,
+            NewPassword,
+            null,
+            null
+        );
+
+        var userId = Guid.Parse(Author.Id.Replace("Author_", ""));
+        var response = await APIClient.UpdateUserAsync(userId, token, request);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Password changed successfully", Severity.Success);
+            await GetAuthorProfileAsync();
+            isEditingProfile = false;
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    private async Task DeleteUser()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var userId = Guid.Parse(Author.Id.Replace("Author_", ""));
+        var response = await APIClient.DeleteUserAsync(userId, token);
+
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("User deleted successfully", Severity.Success);
+            await TokenStorageService.RemoveToken();
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong", Severity.Error);
+        }
+    }
+
+    private async Task<string>
+    RetrieveUsername(string token)
+    {
+        var username = ExtractUsernameFromToken(token);
+        return username;
+    }
+
+    private async Task<Guid>
+    RetrieveUserId(string token)
+    {
+        return ExtractUserIdFromToken(token);
+    }
+
+    public static string ExtractUsernameFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+        var usernameClaim = jsonToken?.Claims.FirstOrDefault(claim => claim.Type == "unique_name");
+        var username = usernameClaim?.Value;
+        return username;
+    }
+
+    public static Guid ExtractUserIdFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+        var userIdClaim = jsonToken?.Claims.FirstOrDefault(claim => claim.Type == "sub");
+        var userId = userIdClaim?.Value;
+        return Guid.Parse(userId);
+    }
+
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least 8 characters long";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
 }

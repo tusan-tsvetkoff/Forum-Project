@@ -8,5 +8,5 @@ public record UpdatePostCommand(
     Guid UserId,
     string? NewTitle,
     string? NewContent,
-    string? Tag,
-    string? TagToRemove) : IRequest<ErrorOr<Updated>>;
+    List<string>? Tag,
+    List<string>? TagToRemove) : IRequest<ErrorOr<Updated>>;

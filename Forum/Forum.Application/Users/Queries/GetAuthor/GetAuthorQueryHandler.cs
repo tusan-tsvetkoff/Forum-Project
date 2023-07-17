@@ -1,5 +1,6 @@
 ﻿using ErrorOr;
 using Forum.Application.Common.Interfaces.Persistence;
+using Forum.Contracts.Post;
 using Forum.Data.AuthorAggregate;
 using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.Common.Errors;
@@ -7,15 +8,17 @@ using MediatR;
 
 namespace Forum.Application.Users.Queries.GetUser;
 
-public class GetAuthorQueryHandler : IRequestHandler<GetAuthorQuery, ErrorOr<Author>>
+public class GetAuthorQueryHandler : IRequestHandler<GetAuthorQuery, ErrorOr<AuthorResponse>>
 {
     private readonly IAuthorRepository _authorRepository;
-
-    public GetAuthorQueryHandler(IAuthorRepository authorRepository)
+    private readonly IUserRepository _userRepository;
+    public GetAuthorQueryHandler(IAuthorRepository authorRepository, 
+        IUserRepository userRepository)
     {
+        _userRepository = userRepository;
         _authorRepository = authorRepository;
     }
-    public async Task<ErrorOr<Author>> Handle(GetAuthorQuery request, CancellationToken cancellationToken)
+    public async Task<ErrorOr<AuthorResponse>> Handle(GetAuthorQuery request, CancellationToken cancellationToken)
     {
         var authorId = AuthorId.Create(request.AuthorId);
 
@@ -24,7 +27,15 @@ public class GetAuthorQueryHandler : IRequestHandler<GetAuthorQuery, ErrorOr<Aut
         {
             return Errors.Author.NotFound;
         }
+        var user = await _userRepository.GetUserByUsernameAsyc(author.Username);
 
-        return author;
+        var authorResponse = new AuthorResponse(
+            author.Id.ToString(),
+            $"{user.FirstName} {user.LastName}",
+            user.Email,
+            author.Username
+        );
+
+        return authorResponse;
     }
 }

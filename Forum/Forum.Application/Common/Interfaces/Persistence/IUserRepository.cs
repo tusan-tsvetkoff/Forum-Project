@@ -12,7 +12,7 @@ public interface IUserRepository
 {
     Task<User?> GetUserByEmailAsync(string email);
     Task AddAsync(User user);
-    void Update(User user);
+    Task Update(User user);
     Task<User?> GetUserByIdAsync(UserId userId);
     Task DeleteAsync(User user);
     Task<User?> GetUserByUsernameAsyc(string username);

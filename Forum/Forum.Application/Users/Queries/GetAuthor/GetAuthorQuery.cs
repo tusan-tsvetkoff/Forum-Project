@@ -1,4 +1,5 @@
 ﻿using ErrorOr;
+using Forum.Contracts.Post;
 using Forum.Data.AuthorAggregate;
 using Forum.Data.UserAggregate;
 using MediatR;
@@ -11,4 +12,4 @@ using System.Threading.Tasks;
 namespace Forum.Application.Users.Queries.GetUser;
 
 public record GetAuthorQuery(
-    string AuthorId) : IRequest<ErrorOr<Author>>;
+    string AuthorId) : IRequest<ErrorOr<AuthorResponse>>;

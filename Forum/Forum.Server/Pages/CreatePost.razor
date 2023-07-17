@@ -10,42 +10,19 @@
 @inject IDialogService DialogService
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
+@inject IAPIClient APIClient
 
-<style>
-    .container-content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        grid-gap: 16px;
-    }
-
-    .item {
-        padding: 16px;
-        background-color: #f2f2f2;
-        border-radius: 4px;
-    }
-
-    .autocomplete-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .button-container {
-        display: flex;
-        gap: 16px;
-    }
-</style>
-
-
-<MudForm>
+<MudForm @ref="form" @bind-IsValid="validPost">
     <MudGrid Justify="Justify.Center" Spacing="2">
         <MudItem xs="12" lg="10">
             <MudPaper Class="pa-1 mb-n1" Outlined="true">
                 <MudTextField T="string"
                 @bind-Value="@postTitle"
-                              Counter="150"
+                              Counter="64"
                               Validation="@(new Func<string, IEnumerable<string>>(MaxCharacters))"
                               Label="Title"
+                              Required="true"
+                              RequiredError="Please enter a title."
                               Immediate="true"
                               Variant="Variant.Outlined"
                               Margin="Margin.Dense"
@@ -53,13 +30,16 @@
                 <MudTextField T="string"
                 @bind-Value="@postContent"
                               Class="px-3"
-                              Lines="5"
+                              Lines="7"
                               Counter="8192"
                               Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersContent))"
                               Label="Write something mysterious"
-                              Variant="Variant.Filled" />
+                              Required="true"
+                              RequiredError="Please enter some content."
+                              Variant="Variant.Filled"
+                              Immediate="true" />
                 <MudContainer MaxWidth="MaxWidth.Large" Class="pa-4">
-                    <MudContainer>
+                    <MudContainer Class="mt-n2">
                         <MudTextField T="string"
                                       Value="@searchText"
                                       ValueChanged="@(async (x)=> await HandleInputChange(x.ToString()))"
@@ -68,11 +48,11 @@
                                       Class="pa-2" />
                     </MudContainer>
                     <MudContainer Class="px-6">
-                        <MudChipSet MultiSelection="true" Filter="true">
+                        <MudChipSet SelectedValues="this.addedTags" MultiSelection="true" Filter="true">
                             @foreach (var item in filteredTags.Take(20))
                             {
                                 var color = GetChipColor(item);
-                                <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Text="@item" OnClick="() => ToggleChip(item)"></MudChip>
+                                <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Text="@item" Value="@item" OnClick="() => ToggleChip(item)"></MudChip>
                             }
                             @if (filteredTags.Count() > 20)
                             {
@@ -87,7 +67,7 @@
                                     foreach (var tag in filteredTags.Skip(20))
                                     {
                                         var color = GetChipColor(tag);
-                                        <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Text="@tag" OnClick="() => ToggleChip(tag)"></MudChip>
+                                        <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Value="@tag" Text="@tag" OnClick="() => ToggleChip(tag)"></MudChip>
                                     }
                                     <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Show less">
                                         <MudIconButton Icon="@Icons.Material.Outlined.ExpandLess" Color="Color.Info" @onclick="ToggleTags" />
@@ -99,6 +79,12 @@
                             </MudTooltip>
                         </MudChipSet>
                         <MudDivider />
+                        <MudContainer>
+                            <div class="mt-2 mb-n3 ml-n6">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!validPost)" OnClick="SubmitPost">Post</MudButton>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" OnClick="NavigateToHome">Cancel</MudButton>
+                            </div>
+                        </MudContainer>
                     </MudContainer>
                 </MudContainer>
             </MudPaper>
@@ -106,14 +92,6 @@
     </MudGrid>
 </MudForm>
 
-<MudGrid Justify="Justify.Center">
-    <MudItem xs="12" lg="10">
-        <MudPaper Class="my-2 pa-2 mt-n2" Outlined="true">
-            <MudButton Color="Color.Error" Variant="Variant.Filled" ButtonType="ButtonType.Submit" OnClick="SubmitPost">Create Post</MudButton>
-            <MudButton Color="Color.Surface" Variant="Variant.Outlined" ButtonType="ButtonType.Button" OnClick="SubmitPost">Cancel</MudButton>
-        </MudPaper>
-    </MudItem>
-</MudGrid>
 
 <MudDialog @bind-IsVisible="visible" Options="dialogOptions">
     <TitleContent>
@@ -139,19 +117,24 @@
     private bool coerceValue;
     private bool confirmationDialogVisible = false;
 
+    private MudForm form;
+    private bool validPost;
+
     private string searchText = "";
     private string newTag;
     private IList<string> tags = new List<string>();
     private bool areTagsExpanded = false;
+    private bool isTagAdded = false;
 
-    private IList<string> addedTags = new List<string>();
+    private IList<object> addedTags = new List<object>();
     private IList<string> filteredTags = new List<string>();
 
-    private MudChip[] selected;
     private static Dictionary<string, Color> chipColors = new Dictionary<string, Color>();
 
     private bool visible;
     private DialogOptions dialogOptions = new() { FullWidth = true, CloseOnEscapeKey = true };
+
+
     private void OpenDialog() => visible = true;
     private void Close() => visible = false;
     private async Task Submit()
@@ -244,29 +227,29 @@
         var postRequest = new CreatePostRequest(
             postTitle,
             postContent,
-            addedTags.ToList()
+            addedTags.Select(x => x.ToString()).ToList()!
         );
 
-        var response = await Http.PostAsJsonAsync("https://localhost:7050/api/posts", postRequest);
+        var response = await APIClient.CreatePostRequestAsync(postRequest, token);
 
-        if (response.IsSuccessStatusCode)
+
+        if (this.Snackbar.HandleResponse(response))
         {
             Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
             Snackbar.Add("Post created successfully!", Severity.Success);
-            var postResponse = await response.Content.ReadFromJsonAsync<PostResponse>();
-            var postId = Guid.Parse(postResponse!.Id);
+            var postId = Guid.Parse(response.Model!.Id);
             NavigationManager.NavigateTo($"/post/{postId}");
         }
         else
         {
-            // TODO: Handle error
+            Snackbar.Add(response.ErrorMessage, Severity.Error);
         }
     }
 
     private IEnumerable<string> MaxCharacters(string ch)
     {
-        if (!string.IsNullOrEmpty(ch) && 150 < ch?.Length)
-            yield return "Max 150 characters";
+        if (!string.IsNullOrEmpty(ch) && 64 < ch?.Length)
+            yield return "Max 64 characters";
     }
 
     private IEnumerable<string> MaxCharactersContent(string ch)
@@ -290,8 +273,8 @@
 
     private async Task GetTags()
     {
-        var response = await Http.GetAsync("https://localhost:7050/api/public/tags");
-        var tags = await response.Content.ReadFromJsonAsync<List<TagsResponse>>();
+        var response = await APIClient.GetTagsAsync();
+        var tags = response.Model;
         this.tags = tags.Select(t => t.Name).ToList();
     }
 
@@ -324,13 +307,20 @@
         StateHasChanged();
     }
 
-    //private void Closed(MudChip chip)
-    //{
-    //    addedTags.Remove(chip.Text);
-    //}
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
 
-    //private void ClearTags()
-    //{
-    //    addedTags.Clear();
-    //}
+    private bool IsTagAdded(string tag)
+    {
+        if (addedTags.Contains(tag))
+        {
+            return !isTagAdded;
+        }
+        else
+        {
+            return isTagAdded;
+        }
+    }
 }

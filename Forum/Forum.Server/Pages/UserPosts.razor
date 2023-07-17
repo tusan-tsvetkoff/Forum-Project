@@ -3,12 +3,13 @@
 @using Forum.Server.Common.Interfaces;
 @using System.IdentityModel.Tokens.Jwt;
 @using System.Net.Http.Headers;
-@using System.Web;
 @using Microsoft.AspNetCore.WebUtilities;
 @page "/your-posts"
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
 
 <style>
     .table-row {
@@ -116,7 +117,7 @@
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
                 FirstName = jsonToken!.Claims.First(claim => claim.Type == "given_name").Value;
-                await GetMostCommentedAsync(token);
+                await GetUserPosts(token);
             }
             StateHasChanged();
         }
@@ -149,6 +150,35 @@
             var postResponseList = await response.Content.ReadFromJsonAsync<PostResponseListNew>();
             Posts = postResponseList;
         }
+    }
+
+    private async Task GetUserPosts(string token)
+    {
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var username = GetUserNameFromToken(token);
+
+        var queryParms = new GetPostsQueryParams(
+            null, null, null,
+            username, null, 1, 10
+        );
+
+        var response = await APIClient.GetQueriedPostsAsync(queryParms, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Posts = response.Model;
+        }
+        else
+        {
+            Snackbar.Add(response.ErrorMessage, Severity.Error);
+        }
+    }
+
+    private string GetUserNameFromToken(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
+        return jsonToken!.Claims.First(claim => claim.Type == "unique_name").Value;
     }
 
     private bool IsExpanded(string postId)

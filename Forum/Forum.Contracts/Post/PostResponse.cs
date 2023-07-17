@@ -34,6 +34,8 @@ public record ListedPostResponse(
 
 public record AuthorResponse(
     string Id,
+    string? FullName,
+    string? Email,
     string Username);
 
 public record LikesResponse(

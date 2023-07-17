@@ -9,6 +9,8 @@
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
 @using Forum.Server.Pages;
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
 
 <style>
     .modern-text-style {
@@ -17,38 +19,37 @@
         font-weight: bold;
         letter-spacing: 1px;
     }
+
+    .mystery-main-logo {
+        width: 300px;
+        justify-self: center;
+    }
 </style>
 
 <PageTitle>Home</PageTitle>
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" lg="10">
-        <MudCard>
-            <MudCardContent>
-                <MudText Typo="Typo.h2">Welcome to the Mystery Forum</MudText>
-                <MudText Typo="Typo.h5">A place where you can share your thoughts and ideas with the world</MudText>
-            </MudCardContent>
-        </MudCard>
+        <MudContainer Class="d-flex justify-content-center">
+            <MudImage Class="mx-auto " src="/mystery-forum-low-resolution-logo-white-on-transparent-background.png" Width="409" Height="270" ObjectPosition="ObjectPosition.Center" Alt="Mystery Logo" />
+        </MudContainer>
     </MudItem>
     <MudItem xs="12" lg="8">
-        <MudCarousel 
-            Class="mud-width-full" @ref="_carousel" 
-            ItemsSource="@_source" @bind-SelectedIndex="selectedIndex" 
-            Style="height:200px;" 
-            ShowArrows="true" 
-            ShowBullets="true" 
-            EnableSwipeGesture="true" 
-            AutoCycle="false">
+        <MudCarousel Class="mud-width-full" @ref="_carousel"
+                     ItemsSource="@_source" @bind-SelectedIndex="selectedIndex"
+                     Style="height:200px;"
+                     ShowArrows="true"
+                     ShowBullets="true"
+                     EnableSwipeGesture="true"
+                     AutoCycle="false">
             <ItemTemplate>
                 <div class="d-flex flex-column flex-column justify-center" style="height:100%">
-                    <MudIconButton 
-                        Class="mx-auto" 
-                        Icon="@Icons.Material.Filled.TableRows" 
-                        Color="Color.Info" Href="@GetHref()" 
-                        Size="@Size.Large" />
-                    <MudText 
-                        Align="@Align.Center" 
-                        Class="modern-text-style mx-auto pointer-events-none">
+                    <MudIconButton Class="mx-auto"
+                                   Icon="@Icons.Material.Filled.TableRows"
+                                   Color="Color.Info" Href="@GetHref()"
+                                   Size="@Size.Large" />
+                    <MudText Align="@Align.Center"
+                             Class="modern-text-style mx-auto pointer-events-none">
                         @context
                     </MudText>
                 </div>
@@ -67,9 +68,13 @@
 
     <MudItem xs="12" lg="6">
         <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h3">Total Posts</MudText>
+                    <MudText Class="ml-2" Typo="Typo.body2">@PostCount posts and counting!</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
             <MudCardContent>
-                <MudText Typo="Typo.h3">Total Posts</MudText>
-                <MudText Typo="Typo.body1">@PostCount</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -103,7 +108,7 @@
             if (IsAuthenticated && await TokenStorageService.CheckTokenExpiry() is true) // this should be enough to check if the token is expired
             {
                 await TokenStorageService.RemoveToken();
-                NavigationManager.NavigateTo("/login"); 
+                NavigationManager.NavigateTo("/login");
             }
             StateHasChanged();
         }
@@ -121,18 +126,16 @@
 
     private async Task ProcessAuthenticationAsync()
     {
-        // Fetch statistics (user count, post count) from the backend API
-
-        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/statistics");
-        if (response.IsSuccessStatusCode)
+        var response = await APIClient.GetStatisticsAsync();
+        if (this.Snackbar.HandleResponse(response))
         {
-            var statistics = await response.Content.ReadFromJsonAsync<StatisticsResponse>();
+            var statistics = response.Model;
             UserCount = statistics.TotalUsersCount;
             PostCount = statistics.TotalPostsCount;
         }
         else
         {
-            // Handle API error
+            Snackbar.Add("There was an issue fetching statistics.", Severity.Error);
         }
         // Check authentication status based on the presence of Authorization Bearer token
         var token = await TokenStorageService.RetrieveToken();
@@ -144,13 +147,8 @@
             var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
             FirstName = jsonToken!.Claims.First(claim => claim.Type == "given_name").Value;
 
-            // Set the token in the authorization header for subsequent requests
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            StateHasChanged();
         }
-    }
-
-    private void NavigateToTenMostCommented()
-    {
-        NavigationManager.NavigateTo("/ten-most-commented");
     }
 }

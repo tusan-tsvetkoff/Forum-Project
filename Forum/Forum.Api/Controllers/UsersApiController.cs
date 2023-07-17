@@ -1,11 +1,14 @@
 ﻿using ErrorOr;
+using Forum.Application.Comments.Queries.GetCommentsOfAuthor;
 using Forum.Application.Users.Commands.Delete;
 using Forum.Application.Users.Commands.Update;
 using Forum.Application.Users.Queries;
 using Forum.Application.Users.Queries.GetUser;
+using Forum.Contracts.Comment;
 using Forum.Contracts.Post;
 using Forum.Contracts.User;
 using Forum.Data.Common.Errors;
+using Forum.Data.PostAggregate.ValueObjects;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +33,9 @@ public class UsersApiController : ApiController
         [FromRoute] Guid userId)
     {
         GetUserId(out Guid authUserId);
+        GetUsername(out string authUsername);
 
-        if (userId != authUserId)
+        if (userId != authUserId && authUsername != "admin")
         {
             return Unauthorized();
         }
@@ -51,14 +55,21 @@ public class UsersApiController : ApiController
         [FromRoute] Guid userId)
     {
         GetUserId(out Guid authUserId);
+        GetUsername(out string authUsername);
 
-        if (userId != authUserId)
+        if (userId != authUserId && authUsername != "admin")
         {
             return Unauthorized();
         }
-        var command = _mapper.Map<UpdateProfileCommand>((request, userId));
+        var newRequest = request with { UserId = userId };
 
-        return Ok();
+        var command = _mapper.Map<UpdateProfileCommand>(newRequest);
+
+        var result = await _mediator.Send(command);
+
+        return result.Match(
+            updated => NoContent(),
+             errors => Problem(errors));
     }
 
 
@@ -88,15 +99,32 @@ public class UsersApiController : ApiController
     [HttpGet("{authorId}")]
     public async Task<IActionResult> GetAuthor(string authorId)
     {
-
         var request = new GetAuthorRequest(authorId);
         var query = _mapper.Map<GetAuthorQuery>(request);
 
         var result = await _mediator.Send(query);
 
         return result.Match(
-                       author => Ok(_mapper.Map<AuthorResponse>(author)),
+                       author => Ok(author),
                                   errors => Problem());
+    }
+
+    [HttpGet("{authorId}/comments")]
+    public async Task<IActionResult> GetAuthorComments(
+               [FromRoute] string authorId,
+               [FromQuery] GetCommentsQueryParams queryParams)
+    {
+        var query = _mapper.Map<GetAuthorCommentsQuery>((authorId, queryParams));
+
+        var result = await _mediator.Send(query);
+
+        return result.Match(
+        comments =>
+        {
+            var commentResponseList = new ListAuthorCommentResponse(AuthorId: authorId.ToString(), comments.Item1, comments.Item2);
+            return Ok(commentResponseList);
+        },
+         errors => Problem());
     }
 
     private void GetUserId(out Guid userId)
@@ -105,5 +133,11 @@ public class UsersApiController : ApiController
         var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         userId = Guid.Parse(authId!);
+    }
+
+    private void GetUsername(out string username)
+    {
+        var userIdentity = User.Identity as ClaimsIdentity;
+        username = userIdentity?.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
     }
 }

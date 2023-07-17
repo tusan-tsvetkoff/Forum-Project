@@ -11,5 +11,6 @@ public record GetPostsQueryParams(
     string? SortColumn,
     string? SortOrder,
     string? Username,
+    string? Tags,
     int Page,
     int PageSize);

@@ -3,12 +3,14 @@ using Forum.Application.Comments.Commands.Delete;
 using Forum.Application.Comments.Commands.Update;
 using Forum.Application.Comments.Common;
 using Forum.Application.Comments.Queries.Get;
+using Forum.Application.Comments.Queries.GetCommentsOfAuthor;
 using Forum.Application.Comments.Queries.GetList;
 using Forum.Application.Posts.Queries.ListPosts;
 using Forum.Contracts.Comment;
 using Forum.Contracts.Post;
 using Forum.Data.CommentAggregate;
 using Mapster;
+using CommentResult = Forum.Contracts.Comment.CommentResult;
 
 namespace Forum.Api.Common.Mapping
 {
@@ -50,6 +52,10 @@ namespace Forum.Api.Common.Mapping
                 .Map(dest => dest.PostId, src => src.Item1)
                 .Map(dest => dest, src => src.Item2);
 
+            config.NewConfig<(string, GetCommentsQueryParams), GetAuthorCommentsQuery>()
+                .Map(dest => dest.AuthorId, src => src.Item1)
+                .Map(dest => dest, src => src.Item2);
+
             config.NewConfig<UpdateCommentRequest, UpdateCommentCommand>()
                 .Map(dest => dest, src => src);
 
@@ -58,6 +64,6 @@ namespace Forum.Api.Common.Mapping
                  .Map(dest => dest.Page, src => src.Page)
                  .Map(dest => dest.PageSize, src => src.PageSize)
                  .Map(dest => dest.SortOrder, src => src.SortOrder);
-        }   
+        }
     }
 }

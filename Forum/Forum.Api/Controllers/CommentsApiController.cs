@@ -1,16 +1,14 @@
 ﻿using Forum.Application.Comments.Commands;
 using Forum.Application.Comments.Commands.Delete;
 using Forum.Application.Comments.Commands.Update;
-using Forum.Application.Comments.Common;
 using Forum.Application.Comments.Queries.Get;
 using Forum.Application.Comments.Queries.GetList;
 using Forum.Contracts.Comment;
+using Forum.Data.Common.Errors;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Forum.Api.Common.Errors;
-using Forum.Data.Common.Errors;
 
 namespace Forum.Api.Controllers;
 

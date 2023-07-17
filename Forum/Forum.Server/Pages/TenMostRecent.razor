@@ -1,7 +1,10 @@
 ﻿@inject HttpClient HttpClient
 @using Forum.Contracts.Post
+@using Forum.Server.Common;
+@using Forum.Server.Common.Interfaces;
 @page "/ten-most-recent"
-
+@inject ISnackbar Snackbar
+@inject IAPIClient APIClient
 <style>
     .table-row {
         transition: background-color 0.3s;
@@ -103,12 +106,15 @@
 
     private async Task GetMostCommentedAsync()
     {
-        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/posts/most-recent");
+        var response = await APIClient.GetMostRecentAsync();
 
-        if (response.IsSuccessStatusCode)
+        if(this.Snackbar.HandleResponse(response))
         {
-            var postResponseList = await response.Content.ReadFromJsonAsync<PostResponseListNew>();
-            Posts = postResponseList;
+            Posts = response.Model;
+        }
+        else
+        {
+            this.Snackbar.Add(response.ErrorMessage, Severity.Error);
         }
     }
 

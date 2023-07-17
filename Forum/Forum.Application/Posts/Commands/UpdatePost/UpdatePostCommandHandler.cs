@@ -39,48 +39,41 @@ public class UpdatePostCommandHandler : IRequestHandler<UpdatePostCommand, Error
         }
         var authorId = AuthorId.Create(author.Id.Value);
         // 3. Check if author is owner of the post
-        if(post.AuthorId != authorId)
+        if (post.AuthorId != authorId)
         {
             return Errors.Authentication.UnauthorizedAction;
         }
         // 4. Update post
+        // 4.1. Title updating is deprecated for now
         if (!string.IsNullOrWhiteSpace(command.NewTitle))
         {
             post.UpdateTitle(command.NewTitle);
         }
-
-        if(!string.IsNullOrWhiteSpace(command.NewContent))
+        if (!string.IsNullOrWhiteSpace(command.NewContent))
         {
             post.UpdateContent(command.NewContent);
         }
 
-        if(!string.IsNullOrWhiteSpace(command.Tag))
+        if (command.Tag is not null)
         {
-            // 1. Check if tag exists
-            if(await _tagRepository.Exists(command.Tag))
+            foreach (var tag in command.Tag)
             {
-                // 2. Get tag
-                var tag = await _tagRepository.GetTagByNameAsync(command.Tag);
-                // 3. Add tag to post
-                post.AddTag(tag!);
-            }
-            else
-            {
-                // 4. Create tag
-                var tag = Tag.Create(command.Tag);
-                // 5. Add tag to database
-                await _tagRepository.AddAsync(tag);
-                // 6. Add tag to post
-                post.AddTag(tag);
+                // 1. Get tag
+                var tagEntity = await _tagRepository.GetTagByNameAsync(tag);
+                // 2. Add tag to post
+                post.AddTag(tagEntity!);
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(command.TagToRemove) && post.Tags.Any(t => t.Name == command.TagToRemove))
+        if (command.TagToRemove is not null)
         {
-            // 1. Get tag
-            var tag = await _tagRepository.GetTagByNameAsync(command.TagToRemove);
-            // 2. Remove tag from post
-            post.RemoveTag(tag!);
+            foreach (var tag in command.TagToRemove)
+            {
+                // 1. Get tag
+                var tagEntity = await _tagRepository.GetTagByNameAsync(tag);
+                // 2. Remove tag from post
+                post.RemoveTag(tagEntity);
+            }
         }
 
         await _postRepository.UpdateAsync(post, cancellationToken);

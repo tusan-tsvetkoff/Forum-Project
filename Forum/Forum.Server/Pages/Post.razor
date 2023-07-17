@@ -1,49 +1,19 @@
 ﻿@page "/post/{postId:guid}"
 @using Forum.Contracts.Comment;
+@using Forum.Contracts.Common;
 @using Forum.Contracts.Post;
 @using Forum.Server.Common.Interfaces;
 @using System.Net.Http.Headers;
 @using System.IdentityModel.Tokens.Jwt;
+@using Forum.Server.Common.Services;
+@using Forum.Server.Data;
+@using Newtonsoft.Json;
+@using System.Text;
 @inject HttpClient HttpClient
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
-
-<style>
-    .comment-list {
-        margin-top: 13px;
-    }
-
-    .comment {
-        border-bottom: 1px solid #ccc;
-        padding: 8px 0;
-    }
-
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 4px;
-    }
-
-    .comment-author {
-        font-weight: bold;
-    }
-
-    .comment-date {
-        color: #888;
-    }
-
-    .textarea-field textarea {
-        height: 150px;
-        width: 150px;
-        resize: vertical;
-    }
-
-    .button-container {
-        display: flex;
-        justify-content: flex-end;
-    }
-</style>
-
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
 
 <MudGrid Justify="Justify.Center">
     <MudItem xs="12" lg="11" Class="mb-n5">
@@ -51,22 +21,31 @@
             <MudCardHeader Class="pa-3 mb-n5">
                 <CardHeaderContent>
                     <MudText Typo="Typo.h5">@PostTitle</MudText>
-                    <MudText Typo="Typo.overline">Posted by u/@PostAuthor @TimeAgo(PostedDate)</MudText>
+                    <MudText Typo="Typo.overline">
+                        Posted by
+                        <MudButton OnClick="() => NavigateToAuthorProfile()" Variant="Variant.Text">/@PostAuthor</MudButton>
+                        @TimeAgo(PostedDate)
+                    </MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
                 <MudItem xs="12" lg="11" Class="mb-14 pt-n10 ml-n7">
                     <MudContainer>
-                        <MudChipSet>
+                        <MudChipSet MultiSelection="@isEditing" Filter="@isEditing">
                             @if (PostTags is not null)
                             {
                                 foreach (var item in PostTags.Take(2))
                                 {
-                                    <MudChip Color="Color.Default" Text="@item"></MudChip>
+                                    <MudChip SelectedColor="Color.Error"
+                                             IconColor="Color.Error"
+                                             CheckedIcon="@Icons.Material.Outlined.Close"
+                                             Color="Color.Default"
+                                             Text="@item"
+                                             OnClick="() => HandleTagRemoval(item)"></MudChip>
                                 }
                                 if (PostTags.Count > 2)
                                 {
-                                    if (!isExpanded)
+                                    if (!isExpanded && isEditing is false)
                                     {
                                         <MudChip Color="Color.Info" OnClick="() => isExpanded = !isExpanded">Show @PostTags.Skip(2).Count() more</MudChip>
                                     }
@@ -74,10 +53,24 @@
                                     {
                                         foreach (var item in PostTags.Skip(2))
                                         {
-                                            <MudChip Color="Color.Default" Text="@item"></MudChip>
+                                            <MudChip SelectedColor="Color.Error"
+                                                     IconColor="Color.Error"
+                                                     CheckedIcon="@Icons.Material.Outlined.Close"
+                                                     Color="Color.Default"
+                                                     Text="@item"
+                                                     OnClick="() => HandleTagRemoval(item)"></MudChip>
                                         }
-                                        <MudChip Color="Color.Info" OnClick="() => isExpanded = !isExpanded">Show less</MudChip>
+                                        if (isEditing is false)
+                                        {
+                                            <MudChip Color="Color.Info" OnClick="() => isExpanded = !isExpanded">Show less</MudChip>
+                                        }
                                     }
+                                }
+                                if (isEditing is true)
+                                {
+                                    <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Add a tag">
+                                        <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.AddCircle" OnClick="OpenDialog" />
+                                    </MudTooltip>
                                 }
                             }
                         </MudChipSet>
@@ -87,9 +80,9 @@
                 @if (isEditing)
                 {
                     <MudTextField T="string"
-                    @bind-Value="@PostContent"
+                    @bind-Value="@EditedContent"
                                   Class="mx-2 mb-1 textarea-field"
-                                  Lines="5"
+                                  Lines="7"
                                   Counter="8192"
                                   Validation="@(new Func<string, IEnumerable<string>>(MaxCharactersContent))"
                                   Label="A mysterious edit.."
@@ -105,18 +98,21 @@
                 <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Default" />
                 <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
                 <MudNavLink Disabled="true" Icon="@Icons.Material.Filled.Comment">
-                    @Comments?.Count
-                    @(Comments?.Count == 1 ? "Comment" : "Comments")
+                    @Comments?.Count @(Comments?.Count == 1 ? "Comment" : "Comments")
                 </MudNavLink>
                 @if (isEditing is true)
                 {
-                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Default">Submit</MudButton>
-                    <MudButton ButtonType="ButtonType.Reset" Color="Color.Default">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Color="Color.Default" OnClick="EditPost">Submit</MudButton>
+                    <MudButton ButtonType="ButtonType.Reset" Color="Color.Default" OnClick="ToggleEditing">Cancel</MudButton>
                 }
                 else
                 {
-                    <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Edit" Color="Color.Default" />
-                    <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Delete" Color="Color.Default" />
+                    <MudTooltip Placement="Placement.Left" Color="Color.Dark" Text="Edit post">
+                        <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Edit" Color="Color.Default" OnClick="ToggleEditing" />
+                    </MudTooltip>
+                    <MudTooltip Placement="Placement.Top" Color="Color.Dark" Text="Delete post">
+                        <MudIconButton Disabled="@EditDeleteButtonsDisabled" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="OpenDeleteDialog" />
+                    </MudTooltip>
                 }
             </MudCardActions>
         </MudCard>
@@ -152,6 +148,12 @@
                             <div class="comment">
                                 <div class="comment-header">
                                     <span class="comment-author">@comment.Author</span>
+                                    <div class="comment-actions">
+                                        <MudIconButton Disabled="!IsAuthorOfComment(comment)" Size="Size.Small" Icon="@Icons.Material.Outlined.Edit"
+                                                       OnClick="() => OpenCommentEditDialog(comment.Id)"></MudIconButton>
+                                        <MudIconButton Disabled="!IsAuthorOfComment(comment)" Size="Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                                       OnClick="() => OpenCommentDeleteDialog(comment.Id)"></MudIconButton>
+                                    </div>
                                     <span class="comment-date">@comment.Timestamp</span>
                                 </div>
                                 <div class="comment-body">@comment.Content</div>
@@ -160,33 +162,139 @@
                     }
                 </div>
             </MudCardContent>
-
         </MudCard>
     </MudItem>
 </MudGrid>
 
+<MudDialog @bind-IsVisible="visible" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.NewLabel" Class="mr-3" /> Select tag(s) to add
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudContainer Class="mt-n2">
+            <MudTextField T="string"
+            @bind-Value="searchTagText"
+                          Immediate="true"
+                          Placeholder="Search tags"
+                          AdornmentIcon="@Icons.Material.Filled.Highlight"
+                          Adornment="Adornment.End"
+                          Class="pa-2" />
+        </MudContainer>
+        <MudContainer>
+            <MudChipSet MultiSelection="true" Filter="true">
+                @foreach (var tag in tags.Except(PostTags))
+                {
+                    <MudChip SelectedColor="Color.Success"
+                             IconColor="Color.Success"
+                             CheckedIcon="@Icons.Material.Outlined.Add"
+                             Color="Color.Default"
+                             Text="@tag"
+                             OnClick="() => HandleTagAddition(tag)">
+                        <MudHighlighter Text="@tag" HighlightedText="@searchTagText" />
+                    </MudChip>
+                }
+            </MudChipSet>
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Outlined" OnClick="Close" Class="px-10">Cancel</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="Submit" Class="px-10">Confirm selection</MudButton>
+    </DialogActions>
+</MudDialog>
 
+<MudDialog @bind-IsVisible="isDeleting" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Color="Color.Error">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Delete Post
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1">Are you sure you want to delete this post? This action is irreversiable.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenDeleteDialog" Class="px-10">Close</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="SubmitDelete" Class="px-10">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-IsVisible="isDeletingComment" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Color="Color.Error">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Delete Comment
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1">Are you sure you want to delete this comment? This action is irreversible.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CloseCommentDeleteDialog" Class="px-10">Close</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="async () => await SubmitCommentDelete(commentToDelete!.Id) " Class="px-10">Delete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<MudDialog @bind-IsVisible="isEditingComment" Options="dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6" Color="Color.Info">
+            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3" /> Edit Comment
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1">Please enter the new comment content:</MudText>
+        <MudTextField T="string" @bind-Value="EditedCommentContent" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CloseCommentEditDialog" Class="px-10">Close</MudButton>
+        <MudButton Variant="Variant.Text" Color="Color.Surface" OnClick="async () => await SubmitCommentEdit(commentToEdit!.Id) " Class="px-10">Edit</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     private List<PostCommentResponse> Comments = new();
 
-    private string PostContent { get; set; }
-    private string PostTitle { get; set; }
-    private string PostAuthor { get; set; }
-    private IList<string> PostTags { get; set; } = new List<string>();
+    private PostCommentResponse? commentToDelete;
+    private PostCommentResponse? commentToEdit;
+
+    private string? PostContent { get; set; }
+    private string? EditedContent { get; set; }
+    private string? PostTitle { get; set; }
+    private string? EditedTitle { get; set; }
+    private string? PostAuthor { get; set; }
+    private string? PostAuthorId { get; set; }
+
     private DateTimeOffset PostedDate { get; set; }
+    private IList<string> PostTags { get; set; } = new List<string>();
+
+    private string? CurrentUser { get; set; }
+    private bool isUserAuthenticated = false;
+
+    private IList<string> RemovedTags { get; set; } = new List<string>();
+    private IList<string> TagsToAdd { get; set; } = new List<string>();
+
+    private IList<string> tags = new List<string>();
+    private IList<string> filteredTags = new List<string>();
+
+    private string searchTagText = "";
 
     private bool IsAuthor { get; set; } = false;
-
     private bool IsLoggedIn { get; set; } = false;
+
+    private string newComment = string.Empty;
 
     private bool EditDeleteButtonsDisabled { get; set; } = true;
 
-    private string newComment;
+    private string? EditedCommentContent { get; set; }
+    private bool isEditingComment = false;
 
     private bool isEditing = false;
-
     private bool isExpanded = false;
+
+    private bool isDeleting;
+    private bool isDeletingComment;
+
+    private bool visible;
+    private DialogOptions dialogOptions = new() { FullWidth = true, CloseOnEscapeKey = true };
 
     [Parameter]
     public Guid postId { get; set; }
@@ -195,8 +303,105 @@
     {
         if (firstRender)
         {
-            await LoadPostData();
+            await AuthenticateUserAsync();
             StateHasChanged();
+        }
+    }
+
+    private async Task AuthenticateUserAsync()
+    {
+        if (!isUserAuthenticated)
+        {
+            var token = await TokenStorageService.RetrieveToken();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                NavigationManager.NavigateTo("/unauthorized");
+            }
+            else
+            {
+                CurrentUser = await RetrieveUsername(token);
+                StateHasChanged();
+                await LoadPostData();
+                await DetermineAuthor();
+                await GetTags();
+                await FilterTags();
+                isUserAuthenticated = true;
+            }
+        }
+    }
+
+    private async Task HandleInputChange(string value)
+    {
+        searchTagText = value;
+        await FilterTags();
+    }
+
+    private async Task FilterTags()
+    {
+        if (string.IsNullOrEmpty(searchTagText))
+        {
+            filteredTags = tags.Except(PostTags).ToList();
+        }
+        else
+        {
+            filteredTags = tags.Where(tag => tag.Contains(searchTagText) && !PostTags.Contains(tag)).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private async Task GetTags()
+    {
+        var response = await HttpClient.GetAsync("https://localhost:7050/api/public/tags");
+        var tags = await response.Content.ReadFromJsonAsync<List<TagsResponse>>();
+        this.tags = tags!.Select(t => t.Name).ToList();
+    }
+
+    private void NavigateToAuthorProfile()
+    {
+        var authorId = PostAuthorId.Replace("Author_", "");
+        NavigationManager.NavigateTo($"/profile/{authorId}");
+    }
+
+    private void OpenDialog() => visible = true;
+
+    private void Close()
+    {
+        TagsToAdd.Clear();
+        visible = false;
+    }
+
+    private async Task Submit()
+    {
+        visible = false;
+    }
+
+    private void ToggleEditing()
+    {
+        isEditing = !isEditing;
+    }
+
+    private void HandleTagAddition(string tag)
+    {
+        if (!TagsToAdd.Contains(tag))
+        {
+            TagsToAdd.Add(tag);
+        }
+        else
+        {
+            TagsToAdd.Remove(tag);
+        }
+    }
+
+    private void HandleTagRemoval(string tag)
+    {
+        if (!RemovedTags.Contains(tag))
+        {
+            RemovedTags.Add(tag);
+        }
+        else
+        {
+            RemovedTags.Remove(tag);
         }
     }
 
@@ -210,10 +415,114 @@
 
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+        if (EditedContent == PostContent)
+        {
+            Snackbar.Add("You haven't changed anything!", Severity.Info);
+            ToggleEditing();
+            return;
+        }
 
+        var updateRequest = new UpdatePostRequest(
+            null, null, null,
+            EditedContent,
+            TagsToAdd.ToList(),
+            RemovedTags.ToList()
+        );
+
+        var response = await APIClient.UpdatePostRequestAsync(updateRequest, postId, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Post edited successfully!", Severity.Success);
+            ToggleEditing();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeletePost()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var response = await APIClient.DeletePostRequestAsync(postId, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Post deleted successfully!", Severity.Success);
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong!", Severity.Error);
+        }
+    }
+
+    private void OpenDeleteDialog() => isDeleting = true;
+
+    private void OpenCommentDeleteDialog(string commentId)
+    {
+        commentToDelete = Comments.FirstOrDefault(c => c.Id == commentId);
+        isDeletingComment = true;
+    }
+
+    private void CloseCommentDeleteDialog() => isDeletingComment = false;
+
+    private void CloseCommentEditDialog() => isEditingComment = false;
+
+    private async Task SubmitDelete()
+    {
+        await DeletePost();
+        isDeleting = false;
+    }
+
+    private async Task SubmitCommentDelete(string commentId)
+    {
+        await DeleteComment(Guid.Parse(commentId));
+        isDeletingComment = false;
+    }
+
+    private async Task SubmitCommentEdit(string commentId)
+    {
+        await EditComment(Guid.Parse(commentId));
+        isEditingComment = false;
+    }
+
+    private void OpenCommentEditDialog(string commentId)
+    {
+        commentToEdit = Comments.FirstOrDefault(c => c.Id == commentId);
+        EditedCommentContent = commentToEdit.Content;
+        isEditingComment = true;
+    }
+
+    private bool IsCommentEdited(PostCommentResponse comment)
+    {
+        return true;
     }
 
     private async Task LoadPostData()
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        var response = await APIClient.GetPostByIdAsync(postId, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            var post = response.Model;
+            Comments = post.Comments;
+            PostContent = post.Content;
+            EditedContent = post.Content;
+            PostTitle = post.Title;
+            EditedTitle = post.Title;
+            PostAuthor = post.Author.Username;
+            PostAuthorId = post.Author.Id;
+            var tempDate = post.CreatedDateTime;
+            tempDate = DateTime.SpecifyKind(tempDate, DateTimeKind.Utc);
+            PostedDate = tempDate;
+            PostTags = post.Tags;
+
+        }
+    }
+
+    private async Task AddComment(Guid postId)
     {
         var token = await TokenStorageService.RetrieveToken();
         if (string.IsNullOrEmpty(token))
@@ -221,41 +530,13 @@
             NavigationManager.NavigateTo("/unauthorized");
         }
 
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var response = await HttpClient.GetAsync($"https://localhost:7050/api/posts/{postId}");
-
-        if (response.IsSuccessStatusCode)
-        {
-            var post = await response.Content.ReadFromJsonAsync<PostResponse>();
-            Comments = post.Comments;
-            PostContent = post.Content;
-            PostTitle = post.Title;
-            PostAuthor = post.Author.Username;
-            var tempDate = post.CreatedDateTime;
-            tempDate = DateTime.SpecifyKind(tempDate, DateTimeKind.Utc);
-            PostedDate = tempDate;
-            PostTags = post.Tags;
-
-            var clientUsername = await RetrieveUsername(token);
-            IsAuthor = IsAuthorOfPost(clientUsername);
-            if (IsAuthor || clientUsername == "admin")
-            {
-                EditDeleteButtonsDisabled = false;
-            }
-        }
-    }
-
-    // TODO: Add Comments
-    private async Task AddComment(Guid postId)
-    {
         var request = new CreateCommentRequest(newComment);
 
-        var response = await HttpClient.PostAsJsonAsync($"https://localhost:7050/api/posts/{postId}/comments", request);
+        var response = await APIClient.CreateCommentRequestAsync(request, postId, token);
 
-        if (response.IsSuccessStatusCode)
+        if (Snackbar.HandleResponse(response))
         {
-            var comment = await response.Content.ReadFromJsonAsync<CommentResponse>();
+            var comment = response.Model;
             newComment = string.Empty;
             await LoadPostData();
         }
@@ -297,29 +578,12 @@
         return "just now";
     }
 
-    private void NavigateToEditPost(Guid postId)
-    {
-        NavigationManager.NavigateTo($"/editpost/{postId}");
-    }
-
-    private void NavigateToDeletePost(Guid postId)
-    {
-        NavigationManager.NavigateTo($"/deletepost/{postId}");
-    }
-
     private bool IsAuthorOfPost(string clientUsername) => clientUsername == PostAuthor ? true : false;
 
     private async Task<string> RetrieveUsername(string token)
     {
-        SetBearerToken(HttpClient, token);
         var username = ExtractUsernameFromToken(token);
         return username;
-    }
-
-    // TODO: Create a helper class and encapsulate this method
-    public static void SetBearerToken(HttpClient httpClient, string token)
-    {
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     }
 
     public static string ExtractUsernameFromToken(string token)
@@ -335,5 +599,64 @@
     {
         if (!string.IsNullOrEmpty(ch) && 8192 < ch?.Length)
             yield return "Max 8192 characters";
+    }
+
+    private async Task DetermineAuthor()
+    {
+        IsAuthor = CurrentUser == PostAuthor;
+        if (IsAuthor || CurrentUser == "admin")
+        {
+            EditDeleteButtonsDisabled = false;
+        }
+    }
+
+    private bool IsAuthorOfComment(PostCommentResponse comment)
+    {
+        return CurrentUser == comment.Author;
+    }
+
+    private async Task DeleteComment(Guid commentId)
+    {
+        var token = await TokenStorageService.RetrieveToken();
+        var response = await APIClient.DeleteCommentRequestAsync(commentId, postId, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Comment deleted.", Severity.Success);
+            await LoadPostData();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong.", Severity.Error);
+        }
+    }
+
+    private async Task EditComment(Guid commentId)
+    {
+        var token = await TokenStorageService.RetrieveToken();
+
+        if (commentToEdit.Content == EditedCommentContent)
+        {
+            Snackbar.Add("Comment not changed.", Severity.Info);
+            return;
+        }
+
+        var updateRequest = new UpdateCommentRequest(
+            null, null, null,
+            EditedCommentContent);
+
+        var response = await APIClient.PatchCommentRequestAsync(commentId, postId, updateRequest, token);
+
+        if (Snackbar.HandleResponse(response))
+        {
+            Snackbar.Add("Comment updated.", Severity.Success);
+            await LoadPostData();
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Something went wrong.", Severity.Error);
+        }
     }
 }

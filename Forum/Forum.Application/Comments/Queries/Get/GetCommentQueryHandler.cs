@@ -12,11 +12,14 @@ public class GetCommentQueryHandler : IRequestHandler<GetCommentQuery, ErrorOr<C
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IAuthorRepository _authorRepository;
+    private readonly IUserRepository _userRepository;
 
     public GetCommentQueryHandler(
      ICommentRepository commentRepository,
-     IAuthorRepository authorRepository)
+     IAuthorRepository authorRepository,
+     IUserRepository userRepository)
     {
+        _userRepository = userRepository;
         _commentRepository = commentRepository;
         _authorRepository = authorRepository;
     }
@@ -35,11 +38,16 @@ public class GetCommentQueryHandler : IRequestHandler<GetCommentQuery, ErrorOr<C
             return Errors.Author.NotFound;
         }
         string username = author.Username;
+        var user = await _userRepository.GetUserByUsernameAsyc(username);
+        var fullName = $"{user.FirstName} {user.LastName}";
+        var email = user.Email;
+        var authorResponse = new AuthorResponse(author.Id.ToString(), fullName, email, username);
+
 
         return new CommentResult(
             comment.Id.Value.ToString(),
             comment.Content,
-            new AuthorResponse(comment.Id.Value.ToString(),username),
+            authorResponse,
             comment.CreatedAt.ToString(),
             comment?.UpdatedAt.ToString());
     }

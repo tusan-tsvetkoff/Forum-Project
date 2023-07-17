@@ -28,7 +28,8 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.SearchTerm, src => src.SearchTerm)
             .Map(dest => dest.SortColumn, src => src.SortColumn)
             .Map(dest => dest.SortOrder, src => src.SortOrder)
-            .Map(dest => dest.Username, src => src.Username);
+            .Map(dest => dest.Username, src => src.Username)
+            .Map(dest => dest.Tags, src => src.Tags);
 
         config.NewConfig<Post, (LikesResponse, DislikesResponse)>()
             .Map(dest => dest.Item1, src => src.Likes.Value)
@@ -53,7 +54,9 @@ public class PostMappingConfig : IRegister
             .Map(dest => dest.Tags, src => src.Tags.Select(tag => tag.Name));
 
         config.NewConfig<UpdatePostRequest, UpdatePostCommand>()
-            .Map(dest => dest, src => src);
+            .Map(dest => dest, src => src)
+            .Map(dest => dest.Tag, src => src.Tags)
+            .Map(dest => dest.TagToRemove, src => src.TagsToRemove);
     }
 }
 

@@ -13,10 +13,16 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<PostRe
     private readonly IPostRepository _postRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly IAuthorRepository _authorRepository;
+    private readonly IUserRepository _userRepository;
 
-    public GetPostQuerryHandler(IPostRepository postRepository, ICommentRepository commentRepository, IAuthorRepository authorRepository)
+    public GetPostQuerryHandler(
+        IPostRepository postRepository,
+        ICommentRepository commentRepository,
+        IAuthorRepository authorRepository,
+        IUserRepository userRepository)
     {
         _postRepository = postRepository;
+        _userRepository = userRepository;
         _commentRepository = commentRepository;
         _authorRepository = authorRepository;
     }
@@ -51,8 +57,12 @@ public class GetPostQuerryHandler : IRequestHandler<GetPostQuery, ErrorOr<PostRe
         }
 
         var postAuthor = await _authorRepository.GetByAuthorIdAsync(post.AuthorId)!;
+        var user = await _userRepository.GetUserByUsernameAsyc(postAuthor.Username)!;
+        var fullName = user!.FirstName + " " + user.LastName;
         var authorResponse = new AuthorResponse(
                        post.AuthorId.ToString()!,
+                       fullName,
+                       user.Email,
                        postAuthor!.Username);
         var likes = new LikesResponse(
             post.Likes.Value);

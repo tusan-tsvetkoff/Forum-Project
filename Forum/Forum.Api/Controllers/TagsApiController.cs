@@ -4,11 +4,13 @@ using Forum.Contracts.Common;
 using Forum.Contracts.Tags;
 using MapsterMapper;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Forum.Api.Controllers;
 
 [Route("api/tags")]
+[AllowAnonymous]
 public class TagsApiController : ApiController
 {
     private readonly IMediator _mediator;

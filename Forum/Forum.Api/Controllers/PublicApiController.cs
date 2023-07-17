@@ -32,6 +32,7 @@ public class PublicApiController : ApiController
             "comments",
             "desc",
             null,
+            null,
             1,
             10
         );
@@ -56,6 +57,7 @@ public class PublicApiController : ApiController
             null,
             "created",
             "desc",
+            null,
             null,
             1,
             10);

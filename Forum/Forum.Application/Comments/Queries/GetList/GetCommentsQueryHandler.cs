@@ -1,14 +1,15 @@
 ﻿using ErrorOr;
-using Forum.Application.Comments.Common;
 using Forum.Application.Common.Interfaces.Persistence;
+using Forum.Contracts.Comment;
 using Forum.Contracts.Common;
+using Forum.Contracts.Post;
+using Forum.Data.AuthorAggregate.ValueObjects;
 using Forum.Data.CommentAggregate;
 using Forum.Data.Common.Errors;
 using Forum.Data.PostAggregate.ValueObjects;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using Forum.Contracts.Post;
 
 namespace Forum.Application.Comments.Queries.GetList;
 
@@ -17,12 +18,15 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
     private readonly IAuthorRepository _authorRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
+    private readonly IUserRepository _userRepository;
 
     public GetCommentsQueryHandler(ICommentRepository commentRepository,
                                    IAuthorRepository authorRepository,
-                                   IPostRepository postRepository)
+                                   IPostRepository postRepository,
+                                   IUserRepository userRepository)
     {
         _postRepository = postRepository;
+        _userRepository = userRepository;
         _commentRepository = commentRepository;
         _authorRepository = authorRepository;
     }
@@ -31,6 +35,8 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
         // 1. Get comments as queryable
         var commentsQuery = await _commentRepository.GetCommentsAsync();
         var postId = PostId.Create(request.PostId);
+        var author = await _authorRepository.GetByUsernameAsync(request.Username);
+        var authorId = AuthorId.Create(author.Id.Value);
         // 2. Apply all the shit
         // 2.5 Check if post exists
         if (await _postRepository.PostExistsAsync(postId) is false)
@@ -45,6 +51,12 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
         {
             commentsQuery = commentsQuery.Where(c =>
                 c.Content.Contains(request.SearchTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Username))
+        {
+            commentsQuery = commentsQuery.Where(
+                c => c.AuthorId == authorId);
         }
 
         if (request.SortOrder == "desc")
@@ -87,11 +99,14 @@ public class GetCommentsQueryHandler : IRequestHandler<GetCommentsQuery, ErrorOr
         return comments.Select(c =>
         {
             var username = _authorRepository.GetByAuthorIdAsync(c.AuthorId)!.Result!.Username!;
+            var user = _userRepository.GetUserByUsernameAsyc(username)!.Result!;
             return new CommentResult(
                 c.Id.Value.ToString(),
                c.Content,
                 new AuthorResponse(
                     c.AuthorId.Value,
+                    $"{user.FirstName} {user.LastName}",
+                    user.Email,
                     username),
                 c.CreatedAt.ToString("dd-MM-yy hh:mm:ss"),
                 c.UpdatedAt?.ToString("dd-MM-yy hh:mm:ss"));

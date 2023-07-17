@@ -9,6 +9,10 @@
 @inject HttpClient HttpClient
 @inject IDialogService DialogService
 @inject ITokenStorageService TokenStorageService
+@inject IAPIClient APIClient
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
 <PageTitle>Login</PageTitle>
 <MudGrid>
     <MudItem xs="12" sm="7">
@@ -55,53 +59,22 @@
             _loginPassword!
         );
 
-        // Send the registration request to the backend API
-        var response = await HttpClient.PostAsJsonAsync("https://localhost:7050/auth/login", loginRequest);
-        // Get the token from the response
+        var response = await APIClient.LoginRequestAsync(loginRequest);
 
-        if (response.IsSuccessStatusCode)
+        if (this.Snackbar.HandleResponse(response))
         {
             // Registration successful
-            var authResult = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
+            var authResult = response.Model;
             var token = authResult.Token;
             await TokenStorageService.StoreToken(token);
-            OpenDialog();
-        }
-        else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        {
-            // Registration failed
-            var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-            errors = problemDetails.Errors.SelectMany(x => x.Value).ToArray();
+            Snackbar.Add($"Welcome back, {authResult.Username}!", Severity.Success);
+            NavigationManager.NavigateTo("/");
+            StateHasChanged();
         }
         else
         {
-            // Registration failed
-            errors = new[] { "Something went wrong" };
+            Snackbar.Add($"Login failed!", Severity.Error);
         }
-    }
-
-    private IEnumerable<string> PasswordStrength(string pw)
-    {
-        if (string.IsNullOrWhiteSpace(pw))
-        {
-            yield return "Password is required!";
-            yield break;
-        }
-        if (pw.Length < 8)
-            yield return "Password must be at least 8 characters long";
-        if (!Regex.IsMatch(pw, @"[A-Z]"))
-            yield return "Password must contain at least one capital letter";
-        if (!Regex.IsMatch(pw, @"[a-z]"))
-            yield return "Password must contain at least one lowercase letter";
-        if (!Regex.IsMatch(pw, @"[0-9]"))
-            yield return "Password must contain at least one digit";
-    }
-
-    private string PasswordMatch(string arg)
-    {
-        if (pwField1.Value != arg)
-            return "Passwords don't match";
-        return null;
     }
 
     private void OpenDialog()

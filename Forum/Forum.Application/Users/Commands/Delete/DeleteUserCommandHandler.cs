@@ -10,7 +10,6 @@ namespace Forum.Application.Users.Commands.Delete;
 public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, ErrorOr<Deleted>>
 {
     private readonly IUserRepository _userRepository;
-
     public DeleteUserCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository;
@@ -18,8 +17,9 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Error
 
     public async Task<ErrorOr<Deleted>> Handle(DeleteUserCommand command, CancellationToken cancellationToken)
     {
+        var userId = UserId.Create(command.UserId);
         // 1. Check if the user exists in the system or not.
-        if(await _userRepository.GetUserByIdAsync(UserId.Create(command.UserId)) is not User user)
+        if (await _userRepository.GetUserByIdAsync(userId) is not User user)
         {
             return Errors.User.NotFound;
         }

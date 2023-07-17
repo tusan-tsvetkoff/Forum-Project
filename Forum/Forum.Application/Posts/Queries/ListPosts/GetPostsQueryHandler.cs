@@ -16,10 +16,12 @@ public class GetPostsQueryHandler :
 {
     private readonly IPostRepository _postRepository;
     private readonly IAuthorRepository _authorRepository;
+    private readonly IUserRepository _userRepository;
 
-    public GetPostsQueryHandler(IPostRepository postRepository, IAuthorRepository authorRepository)
+    public GetPostsQueryHandler(IPostRepository postRepository, IAuthorRepository authorRepository, IUserRepository userRepository)
     {
         _postRepository = postRepository;
+        _userRepository = userRepository;
         _authorRepository = authorRepository;
     }
 
@@ -42,7 +44,7 @@ public class GetPostsQueryHandler :
                 p.Content.Contains(request.SearchTerm));
         }
 
-        if(request.SortOrder is null && request.SortColumn is null)
+        if (request.SortOrder is null && request.SortColumn is null)
         {
             postQuery = postQuery.OrderByDescending(p => p.CreatedDateTime);
         }
@@ -54,6 +56,12 @@ public class GetPostsQueryHandler :
         else
         {
             postQuery = postQuery.OrderBy(GetSortProperty(request));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Tags))
+        {
+            var tags = request.Tags.Split(',').ToList();
+            postQuery = postQuery.Where(p => p.Tags.Any(t => tags.Contains(t.Name)));
         }
 
         int page = request.Page ?? 1;
@@ -92,21 +100,25 @@ public class GetPostsQueryHandler :
         foreach (var p in posts)
         {
             var author = await _authorRepository.GetByAuthorIdAsync(p.AuthorId)!;
-                var listedPostResponse = new ListedPostResponse(
-                    p.Id.Value.ToString(),
-                    new AuthorResponse(
-                        p.AuthorId.Value,
-                        author!.Username),
-                    p.Title,
-                    p.Content,
-                    p.Tags.Select(t => t.Name).ToList(),
-                    new LikesResponse(p.Likes.Value),
-                    new DislikesResponse(p.Dislikes.Value),
-                    p.CommentIds.Count,
-                    p.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"),
-                    p.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"));
+            var user = await _userRepository.GetUserByUsernameAsyc(author!.Username);
+            var fullName = author!.FirstName + " " + author.LastName;
+            var listedPostResponse = new ListedPostResponse(
+                p.Id.Value.ToString(),
+                new AuthorResponse(
+                    p.AuthorId.Value,
+                    fullName,
+                    user.Email,
+                    user.Username),
+                p.Title,
+                p.Content,
+                p.Tags.Select(t => t.Name).ToList(),
+                new LikesResponse(p.Likes.Value),
+                new DislikesResponse(p.Dislikes.Value),
+                p.CommentIds.Count,
+                p.CreatedDateTime.ToString("dd/MM/yy hh:mm:ss"),
+                p.UpdatedDateTime.ToString("dd/MM/yy hh:mm:ss"));
 
-                postResponses.Add(listedPostResponse);
+            postResponses.Add(listedPostResponse);
         }
 
         return postResponses;
@@ -118,7 +130,6 @@ public class GetPostsQueryHandler :
         hasNextPage = request.Page * request.PageSize < postCount;
     }
 
-
     private static Expression<Func<Post, object>> GetSortProperty(GetPostsQuery request)
     {
         return request.SortColumn?.ToLower() switch
@@ -127,6 +138,8 @@ public class GetPostsQueryHandler :
             "content" => p => p.Content,
             "created" => p => p.CreatedDateTime,
             "comments" => p => p.CommentIds.Count,
+            "likes" => p => p.Likes.Value,
+            "dislikes" => p => p.Dislikes.Value,
             _ => p => p.CreatedDateTime
         };
     }

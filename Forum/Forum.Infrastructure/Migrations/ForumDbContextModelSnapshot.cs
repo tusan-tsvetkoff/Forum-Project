@@ -17,7 +17,7 @@ namespace Forum.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.7")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -59,6 +59,17 @@ namespace Forum.Infrastructure.Migrations
                         .HasDatabaseName("IX_Author_Username");
 
                     b.ToTable("Authors", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "Author_bc6f4adc-1a0a-4870-b495-a0d7b6b1aac2",
+                            CreatedDateTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            FirstName = "Admin",
+                            LastName = "User",
+                            UserId = new Guid("bc6f4adc-1a0a-4870-b495-a0d7b6b1aac2"),
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("Forum.Data.CommentAggregate.Comment", b =>
@@ -194,6 +205,19 @@ namespace Forum.Infrastructure.Migrations
                         .HasDatabaseName("IX_Username");
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("bc6f4adc-1a0a-4870-b495-a0d7b6b1aac2"),
+                            CreatedDate = new DateTime(2023, 7, 17, 4, 20, 55, 392, DateTimeKind.Utc).AddTicks(4520),
+                            Email = "admin4etotochkakom@example.com",
+                            FirstName = "Admin",
+                            IsAdmin = true,
+                            LastName = "User",
+                            Password = "adminskaparola",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("PostTag", b =>

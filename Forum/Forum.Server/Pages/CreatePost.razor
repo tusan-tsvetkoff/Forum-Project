@@ -69,20 +69,39 @@
                                         var color = GetChipColor(tag);
                                         <MudChip SelectedColor="Color.Error" Color="color" Variant="Variant.Outlined" Value="@tag" Text="@tag" OnClick="() => ToggleChip(tag)"></MudChip>
                                     }
-                                    <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Show less">
-                                        <MudIconButton Icon="@Icons.Material.Outlined.ExpandLess" Color="Color.Info" @onclick="ToggleTags" />
+                                    <MudTooltip 
+                                    Placement="Placement.Right" 
+                                    Color="Color.Dark" 
+                                    Text="Show less">
+                                        <MudIconButton 
+                                        Icon="@Icons.Material.Outlined.ExpandLess" 
+                                        Color="Color.Info" 
+                                        @onclick="ToggleTags" />
                                     </MudTooltip>
                                 }
                             }
-                            <MudTooltip Placement="Placement.Right" Color="Color.Dark" Text="Create a new tag">
-                                <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.AddCircle" OnClick="OpenDialog" />
+                            <MudTooltip 
+                            Placement="Placement.Right" 
+                            Color="Color.Dark" 
+                            Text="Create a new tag">
+                                <MudIconButton 
+                                Color="Color.Success" 
+                                Icon="@Icons.Material.Filled.AddCircle" 
+                                OnClick="OpenDialog" />
                             </MudTooltip>
                         </MudChipSet>
                         <MudDivider />
                         <MudContainer>
                             <div class="mt-2 mb-n3 ml-n6">
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!validPost)" OnClick="SubmitPost">Post</MudButton>
-                                <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" OnClick="NavigateToHome">Cancel</MudButton>
+                                <MudButton 
+                                Variant="Variant.Filled" 
+                                Color="Color.Primary" 
+                                Disabled="@(!validPost)" 
+                                OnClick="SubmitPost">Post</MudButton>
+                                <MudButton 
+                                Variant="Variant.Outlined" 
+                                Color="Color.Tertiary" 
+                                OnClick="NavigateToHome">Cancel</MudButton>
                             </div>
                         </MudContainer>
                     </MudContainer>
@@ -109,19 +128,19 @@
 </MudDialog>
 
 @code {
-    private string postTitle;
-    private string postContent;
-    private string selectedTag;
+    private string? postTitle;
+    private string? postContent;
+    private string? selectedTag;
     private bool resetValueOnEmptyText;
     private bool coerceText;
     private bool coerceValue;
     private bool confirmationDialogVisible = false;
 
-    private MudForm form;
+    private MudForm? form;
     private bool validPost;
 
     private string searchText = "";
-    private string newTag;
+    private string? newTag;
     private IList<string> tags = new List<string>();
     private bool areTagsExpanded = false;
     private bool isTagAdded = false;
@@ -133,7 +152,6 @@
 
     private bool visible;
     private DialogOptions dialogOptions = new() { FullWidth = true, CloseOnEscapeKey = true };
-
 
     private void OpenDialog() => visible = true;
     private void Close() => visible = false;
@@ -179,7 +197,7 @@
     {
         var values = Enum.GetValues(typeof(Color));
         var random = new Random();
-        var randomColor = (Color)values.GetValue(random.Next(values.Length));
+        var randomColor = (Color)values.GetValue(random.Next(values.Length))!;
         return randomColor;
     }
 
@@ -260,22 +278,25 @@
 
     private async Task<IEnumerable<string>> SearchTags(string search)
     {
-        var response = await Http.GetAsync("https://localhost:7050/api/public/tags");
-        var tags = await response.Content.ReadFromJsonAsync<List<TagsResponse>>();
+        var response = await APIClient.GetTagsAsync();
+        var tags = response.Model;
 
-        if (string.IsNullOrWhiteSpace(search))
-            return tags.Select(t => t.Name);
+            if (string.IsNullOrWhiteSpace(search))
+                return tags!.Select(t => t.Name);
 
-        return tags
-            .Where(x => x.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase))
-            .Select(x => x.Name);
+            return tags!
+                .Where(x => x.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase))
+                .Select(x => x.Name);
     }
 
     private async Task GetTags()
     {
         var response = await APIClient.GetTagsAsync();
-        var tags = response.Model;
-        this.tags = tags.Select(t => t.Name).ToList();
+        if(Snackbar.HandleResponse(response))
+        {
+            var tags = response.Model;
+            this.tags = tags!.Select(t => t.Name).ToList();
+        }
     }
 
     private void AddTag(string tag)

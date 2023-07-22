@@ -48,8 +48,8 @@
 
     bool success;
     string[] errors = { };
-    private MudTextField<string> pwField1;
-    private MudForm form;
+    private MudTextField<string>? pwField1;
+    private MudForm? form;
 
     private async Task HandleValidSubmit()
     {
@@ -65,7 +65,7 @@
         {
             // Registration successful
             var authResult = response.Model;
-            var token = authResult.Token;
+            var token = authResult!.Token;
             await TokenStorageService.StoreToken(token);
             Snackbar.Add($"Welcome back, {authResult.Username}!", Severity.Success);
             NavigationManager.NavigateTo("/");

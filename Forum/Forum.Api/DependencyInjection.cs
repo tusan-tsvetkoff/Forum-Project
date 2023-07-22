@@ -10,11 +10,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
-        
         services.AddControllers();
         services.AddRazorPages();
         services.AddSingleton<ProblemDetailsFactory, ForumProblemDetailsFactory>();
         services.AddSingleton<IUserIdProvider, TokenUserIdProvider>();
+        services.AddSwaggerGen();
 
         services.AddMappings();
         return services;

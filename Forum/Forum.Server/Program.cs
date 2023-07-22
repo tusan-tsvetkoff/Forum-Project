@@ -12,7 +12,6 @@ builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ITokenStorageService, TokenStorageService>();
 builder.Services.AddSingleton<IAPIClient, APIClient>();
 builder.Services.AddScoped<SearchService>();

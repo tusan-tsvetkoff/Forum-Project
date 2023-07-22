@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using Forum.Application.Common.Interfaces.Persistence;
-using System.Runtime.Serialization;
 
 namespace Forum.Application.Authentication.Commands.Register;
 public class RegisterCommandValidator : AbstractValidator<RegisterCommand>

@@ -1,5 +1,4 @@
-﻿using Forum.Application.Posts.Commands.UpdatePost;
-using Forum.Application.Users.Commands.Delete;
+﻿using Forum.Application.Users.Commands.Delete;
 using Forum.Application.Users.Commands.Update;
 using Forum.Application.Users.Queries;
 using Forum.Contracts.Common;

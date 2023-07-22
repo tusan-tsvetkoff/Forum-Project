@@ -24,35 +24,73 @@ public class APIClient : IAPIClient
         _httpClient.BaseAddress = new Uri(_baseUrl);
     }
     // Statistics
-    public Task<APIResponse<StatisticsResponse>> GetStatisticsAsync() => GetAsync<StatisticsResponse>("api/public/statistics");
+    public Task<APIResponse<StatisticsResponse>> GetStatisticsAsync() => GetAsync<StatisticsResponse>(
+        "api/public/statistics");
     // Posts
     public Task<APIResponse<PostResponseListNew>> GetMostCommentedAsync() => GetAsync<PostResponseListNew>(
         "api/public/posts/most-commented");
-    public Task<APIResponse<PostResponseListNew>> GetMostRecentAsync() => GetAsync<PostResponseListNew>("api/public/posts/most-recent");
-    public Task<APIResponse<PostResponseListNew>> GetQueriedPostsAsync(GetPostsQueryParams postQueryParams, string token)
+    public Task<APIResponse<PostResponseListNew>> GetMostRecentAsync() => GetAsync<PostResponseListNew>(
+        "api/public/posts/most-recent");
+    public Task<APIResponse<PostResponseListNew>> GetQueriedPostsAsync(
+        GetPostsQueryParams postQueryParams,
+        string token)
     {
-        var queryString = QueryHelpers.AddQueryString("api/posts", new Dictionary<string, string?>());
+        var queryString = QueryHelpers.AddQueryString(
+            "api/posts",
+            new Dictionary<string, string?>());
         if (!string.IsNullOrWhiteSpace(postQueryParams.SearchTerm))
-            queryString = QueryHelpers.AddQueryString(queryString, "searchTerm", postQueryParams.SearchTerm);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "searchTerm",
+                postQueryParams.SearchTerm);
         if (!string.IsNullOrWhiteSpace(postQueryParams.SortColumn))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortColumn", postQueryParams.SortColumn);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortColumn",
+                postQueryParams.SortColumn);
         if (!string.IsNullOrWhiteSpace(postQueryParams.SortOrder))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortOrder", postQueryParams.SortOrder);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortOrder",
+                postQueryParams.SortOrder);
         if (!string.IsNullOrWhiteSpace(postQueryParams.Username))
-            queryString = QueryHelpers.AddQueryString(queryString, "username", postQueryParams.Username);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "username",
+                postQueryParams.Username);
         if (postQueryParams.Tags is not null && postQueryParams.Tags.Any())
-            queryString = QueryHelpers.AddQueryString(queryString, "tags", postQueryParams.Tags);
-        queryString = QueryHelpers.AddQueryString(queryString, "page", postQueryParams.Page.ToString());
-        queryString = QueryHelpers.AddQueryString(queryString, "pageSize", postQueryParams.PageSize.ToString());
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "tags",
+                postQueryParams.Tags);
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "page",
+            postQueryParams.Page.ToString());
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "pageSize",
+            postQueryParams.PageSize.ToString());
 
         return GetAsync<PostResponseListNew>(queryString, token);
     }
-    public Task<APIResponse<PostResponse>> CreatePostRequestAsync(CreatePostRequest createPostRequest, string token) =>
-        PostAsync<CreatePostRequest, PostResponse>("api/posts", createPostRequest, token);
+    public Task<APIResponse<PostResponse>> CreatePostRequestAsync(
+        CreatePostRequest createPostRequest,
+        string token) =>
+        PostAsync<CreatePostRequest, PostResponse>(
+            "api/posts",
+            createPostRequest,
+            token);
     public Task<APIResponse<PostResponse>> GetPostByIdAsync(Guid postId, string token)
         => GetAsync<PostResponse>($"api/posts/{postId}", token);
-    public Task<APIResponse<PostResponse>> UpdatePostRequestAsync(UpdatePostRequest updatePostRequest, Guid postId, string token) =>
-        PatchAsync<UpdatePostRequest, PostResponse>($"api/posts/{postId}", updatePostRequest, token);
+    public Task<APIResponse<PostResponse>> UpdatePostRequestAsync(
+        UpdatePostRequest updatePostRequest,
+        Guid postId,
+        string token) =>
+        PatchAsync<UpdatePostRequest, PostResponse>(
+            $"api/posts/{postId}",
+            updatePostRequest,
+            token);
     public Task<APIResponse<PostResponse>> DeletePostRequestAsync(Guid postId, string token)
         => DeleteAsync<PostResponse>($"api/posts/{postId}", token);
 
@@ -64,47 +102,106 @@ public class APIClient : IAPIClient
     // Authentication
     public Task<APIResponse<AuthenticationResponse>> RegisterRequestAsync(RegisterRequest register) =>
         PostAsync<RegisterRequest, AuthenticationResponse>("auth/register", register);
-
     public Task<APIResponse<AuthenticationResponse>> LoginRequestAsync(LoginRequest login) =>
-        PostAsync<LoginRequest, AuthenticationResponse>("auth/login", login);
+        PostAsync<LoginRequest, AuthenticationResponse>(
+            "auth/login",
+            login);
 
     // Comments
-    public Task<APIResponse<CommentResponse>> CreateCommentRequestAsync(CreateCommentRequest createCommentRequest, Guid postId, string token) =>
-        PostAsync<CreateCommentRequest, CommentResponse>($"api/posts/{postId}/comments", createCommentRequest, token);
-    public Task<APIResponse<CommentResponse>> DeleteCommentRequestAsync(Guid commentId, Guid postId, string token) =>
-        DeleteAsync<CommentResponse>($"api/posts/{postId}/comments/{commentId}", token);
-    public Task<APIResponse<CommentResponse>> PatchCommentRequestAsync(Guid commentId, Guid postId, UpdateCommentRequest request, string token) =>
-        PatchAsync<UpdateCommentRequest, CommentResponse>($"api/posts/{postId}/comments/{commentId}", request, token);
+    public Task<APIResponse<CommentResponse>> CreateCommentRequestAsync(
+        CreateCommentRequest createCommentRequest,
+        Guid postId,
+        string token) =>
+        PostAsync<CreateCommentRequest, CommentResponse>(
+            $"api/posts/{postId}/comments",
+            createCommentRequest,
+            token);
+    public Task<APIResponse<CommentResponse>> DeleteCommentRequestAsync(
+        Guid commentId,
+        Guid postId,
+        string token) =>
+        DeleteAsync<CommentResponse>(
+            $"api/posts/{postId}/comments/{commentId}",
+            token);
+    public Task<APIResponse<CommentResponse>> PatchCommentRequestAsync(
+        Guid commentId,
+        Guid postId,
+        UpdateCommentRequest request,
+        string token) =>
+        PatchAsync<UpdateCommentRequest, CommentResponse>(
+            $"api/posts/{postId}/comments/{commentId}",
+            request,
+            token);
     public Task<APIResponse<ListCommentResponse>> GetCommentsAsync(GetCommentsQueryParams queryParams, string token, Guid postId)
     {
-        var queryString = QueryHelpers.AddQueryString($"api/posts/{postId}/comments", new Dictionary<string, string?>());
+        var queryString = QueryHelpers.AddQueryString(
+            $"api/posts/{postId}/comments",
+            new Dictionary<string, string?>());
         if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
-            queryString = QueryHelpers.AddQueryString(queryString, "searchTerm", queryParams.SearchTerm);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "searchTerm",
+                queryParams.SearchTerm);
         if (!string.IsNullOrWhiteSpace(queryParams.SortColumn))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortColumn", queryParams.SortColumn);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortColumn",
+                queryParams.SortColumn);
         if (!string.IsNullOrWhiteSpace(queryParams.SortOrder))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortOrder", queryParams.SortOrder);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortOrder",
+                queryParams.SortOrder);
         if (!string.IsNullOrWhiteSpace(queryParams.Username))
-            queryString = QueryHelpers.AddQueryString(queryString, "username", queryParams.Username);
-        queryString = QueryHelpers.AddQueryString(queryString, "page", queryParams.Page.ToString());
-        queryString = QueryHelpers.AddQueryString(queryString, "pageSize", queryParams.PageSize.ToString());
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "username",
+                queryParams.Username);
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "page",
+            queryParams.Page.ToString());
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "pageSize",
+            queryParams.PageSize.ToString());
 
         return GetAsync<ListCommentResponse>(queryString, token);
     }
 
     public Task<APIResponse<ListAuthorCommentResponse>> GetAuthorCommentsAsync(GetCommentsQueryParams queryParams, string token, string authorId)
     {
-        var queryString = QueryHelpers.AddQueryString($"api/users/{authorId}/comments", new Dictionary<string, string?>());
+        var queryString = QueryHelpers.AddQueryString(
+            $"api/users/{authorId}/comments",
+            new Dictionary<string, string?>());
         if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
-            queryString = QueryHelpers.AddQueryString(queryString, "searchTerm", queryParams.SearchTerm);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "searchTerm",
+                queryParams.SearchTerm);
         if (!string.IsNullOrWhiteSpace(queryParams.SortColumn))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortColumn", queryParams.SortColumn);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortColumn",
+                queryParams.SortColumn);
         if (!string.IsNullOrWhiteSpace(queryParams.SortOrder))
-            queryString = QueryHelpers.AddQueryString(queryString, "sortOrder", queryParams.SortOrder);
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "sortOrder",
+                queryParams.SortOrder);
         if (!string.IsNullOrWhiteSpace(queryParams.Username))
-            queryString = QueryHelpers.AddQueryString(queryString, "username", queryParams.Username);
-        queryString = QueryHelpers.AddQueryString(queryString, "page", queryParams.Page.ToString());
-        queryString = QueryHelpers.AddQueryString(queryString, "pageSize", queryParams.PageSize.ToString());
+            queryString = QueryHelpers.AddQueryString(
+                queryString,
+                "username",
+                queryParams.Username);
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "page",
+            queryParams.Page.ToString());
+        queryString = QueryHelpers.AddQueryString(
+            queryString,
+            "pageSize",
+            queryParams.PageSize.ToString());
 
         return GetAsync<ListAuthorCommentResponse>(queryString, token);
     }

@@ -23,6 +23,8 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreated>
 
 
         // 2. Send a welcome email to the user.
+        // implement a welcome email.
+
 
 
         // 3. Send a notification to the admin that a new user has registered.

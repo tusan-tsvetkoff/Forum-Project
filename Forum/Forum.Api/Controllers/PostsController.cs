@@ -111,6 +111,8 @@ public class PostsController : ApiController
         var userIdentity = User.Identity as ClaimsIdentity;
         var authId = userIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+        var role = User.IsInRole("Admin");
+
         userId = Guid.Parse(authId!);
     }
 }

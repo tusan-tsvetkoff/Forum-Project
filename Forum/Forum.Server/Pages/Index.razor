@@ -1,6 +1,5 @@
 ﻿@page "/"
 @inject HttpClient HttpClient
-@using Forum.Contracts.Statistics;
 @using Forum.Server.Common.Interfaces;
 @using MudBlazor;
 @using System.IdentityModel.Tokens.Jwt;
@@ -8,23 +7,11 @@
 @inject HttpClient HttpClient
 @inject ITokenStorageService TokenStorageService
 @inject NavigationManager NavigationManager
-@using Forum.Server.Pages;
 @inject IAPIClient APIClient
 @inject ISnackbar Snackbar
 
-<style>
-    .modern-text-style {
-        font-family: 'Roboto', sans-serif;
-        font-size: 20px;
-        font-weight: bold;
-        letter-spacing: 1px;
-    }
 
-    .mystery-main-logo {
-        width: 300px;
-        justify-self: center;
-    }
-</style>
+
 
 <PageTitle>Home</PageTitle>
 
@@ -83,7 +70,7 @@
 
 
 @code {
-    private MudCarousel<string> _carousel;
+    private MudCarousel<string>? _carousel;
     private IList<string> _source = new List<string>() { "10 Most Commented Posts", "10 Most Recent Posts" };
     private bool _autocycle = true;
     private bool _arrows = true;
@@ -96,7 +83,7 @@
     private int UserCount { get; set; }
     private int PostCount { get; set; }
     private bool IsAuthenticated { get; set; } = false;
-    private string FirstName { get; set; }
+    private string? FirstName { get; set; }
 
     private Transition transition = Transition.Fade;
 
@@ -130,14 +117,14 @@
         if (this.Snackbar.HandleResponse(response))
         {
             var statistics = response.Model;
-            UserCount = statistics.TotalUsersCount;
+            UserCount = statistics!.TotalUsersCount;
             PostCount = statistics.TotalPostsCount;
         }
         else
         {
             Snackbar.Add("There was an issue fetching statistics.", Severity.Error);
         }
-        // Check authentication status based on the presence of Authorization Bearer token
+
         var token = await TokenStorageService.RetrieveToken();
         IsAuthenticated = !string.IsNullOrEmpty(token);
 
